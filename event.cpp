@@ -34,7 +34,7 @@ void apply_permutation(T * collection, const vector<size_t> & indices){
 }
 
 void event::sort_jets_pt(int njets){
-    int nmax = NobjJet;
+    int nmax = min(NobjJet, 50);
     if(njets > 0 and njets < NobjJet){
         nmax = njets;
     }

@@ -8,6 +8,9 @@ class dataset{
 public:
     // whether or not this dataset is mc. This is used for jet energy corrections, reweighting, etc.
     bool mc;
+    bool jetdata;
+    bool jethtdata;
+    bool jetmondata;
         
     // the filenames that make up this dataset:
     std::vector<std::string> files;
@@ -32,6 +35,9 @@ struct event{
     UInt_t EventNumber;
     Float_t Weight;
     bool is_mc; // not in the tree; filled via dataset
+    bool is_jetdata; // not in the tree; filled via dataset
+    bool is_jethtdata; // not in the tree; filled via dataset
+    bool is_jetmondata; // not in the tree; filled via dataset
     
     // triggers:
     Bool_t HltDiPFJetAve40;
@@ -78,6 +84,9 @@ struct event{
     Float_t         GenJetPt[50];   //[NobjJet]
     Float_t         GenJetPhi[50];   //[NobjJet]
     Float_t         GenJetEta[50];   //[NobjJet]
+
+    Float_t         GenEvtScale;
+
 
     // to add events info:
     // 1. add the corresponding data member here

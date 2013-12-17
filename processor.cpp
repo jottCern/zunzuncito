@@ -44,6 +44,9 @@ void processor::run(const dataset & d, TFile & outfile){
     // connect branches:
     event evt;
     evt.is_mc = d.mc;
+    evt.is_jetdata = d.jetdata; 
+    evt.is_jethtdata = d.jethtdata;
+    evt.is_jetmondata = d.jetmondata;
     
     c.SetBranchStatus("*", 0);
     connect(c, "RunNumber", evt.RunNumber);
@@ -57,6 +60,8 @@ void processor::run(const dataset & d, TFile & outfile){
     connect(c, "PS_HltDiPFJetAve80", evt.PS_HltDiPFJetAve80);
     connect(c, "HltDiPFJetAve140", evt.HltDiPFJetAve140);
     connect(c, "PS_HltDiPFJetAve140", evt.PS_HltDiPFJetAve140);
+    connect(c, "HltDiPFJetAve200", evt.HltDiPFJetAve200);
+    connect(c, "PS_HltDiPFJetAve200", evt.PS_HltDiPFJetAve200);
     connect(c, "HltDiPFJetAve260", evt.HltDiPFJetAve260);
     connect(c, "PS_HltDiPFJetAve260", evt.PS_HltDiPFJetAve260);
     connect(c, "HltDiPFJetAve320", evt.HltDiPFJetAve320);
@@ -90,6 +95,8 @@ void processor::run(const dataset & d, TFile & outfile){
     connect(c, "GenJetPt", evt.GenJetPt);
     connect(c, "GenJetPhi", evt.GenJetPhi);
     connect(c, "GenJetEta", evt.GenJetEta);
+
+    connect(c, "GenEvtScale", evt.GenEvtScale);
     
     size_t ifirst = d.nskip;
     size_t ilast = n;
@@ -113,7 +120,7 @@ void processor::run(const dataset & d, TFile & outfile){
     
     for(size_t i=ifirst; i<ilast; ++i){
         if(verbose){
-            if(i%10000==0){
+            if(i%100000==0){
                 cout << i << endl;
             }
         }
