@@ -25,7 +25,7 @@ void connect(TTree & tree, const char * name, T & t){
 
 }
 
-void processor::add_module(const shared_ptr<module> & m){
+void processor::add_module(const boost::shared_ptr<module> & m){
     modules.push_back(m);
 }
 

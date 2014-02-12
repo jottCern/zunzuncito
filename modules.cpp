@@ -121,7 +121,7 @@ bool checktrigger::process(event & evt){
       }
 
       if(evt.is_jetdata || evt.is_jethtdata) {
-         if(ptave >= 379  && ptave < 467 && evt.HltDiPFJetAve320) return true;
+         if(ptave >= 379 && ptave < 467 && evt.HltDiPFJetAve320) return true;
          if(ptave >= 467 && evt.HltDiPFJetAve400) return true;
       }
    }
@@ -296,9 +296,13 @@ reasonablemceventchecker::~reasonablemceventchecker(){}
 void alphareweighting::start_dataset(const dataset & d, TFile & outfile)
 {
    f = new TF1("func", "0.5*[0]*(TMath::Erf([1]*x-[2])+1)", 0, 1.0);
-   f->SetParameter(0, 1.15);
-   f->SetParameter(1, 15);
-   f->SetParameter(2, 0.1);
+ //   f->SetParameter(0, 1.15);
+//    f->SetParameter(1, 15);
+//    f->SetParameter(2, 0.1);
+
+   f->SetParameter(0, 1.09);
+   f->SetParameter(1, 13.5);
+   f->SetParameter(2, 0.02);
 }
 
 bool alphareweighting::process(event & evt){
@@ -353,8 +357,8 @@ float smearmc::getsmearfactor(float eta)
 {
    const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f}; // eta bins defining smearfactors
    const int neta = sizeof(eta_high) / sizeof(float);
-   const float smearval[] = {1.077, 1.101, 1.126, 1.235, 1.215};
-   // const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1};
+   // const float smearval[] = {1.080, 1.103, 1.124, 1.222, 1.206};
+   const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1};
    //const float smearval[] = {1, 1, 1, 1, 1};
 
    for(int ieta = 0; ieta < neta; ++ieta){
@@ -380,51 +384,326 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
       outfile.cd(dir.c_str());
    }
    // create the control histograms
-   NVtx = new TH1F(("NVtx_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
-   NVtx->Sumw2();
-   Jet1Pt = new TH1F(("Jet1Pt_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 200, 0, 2000);
-   Jet1Pt->Sumw2();
-   Jet2Pt = new TH1F(("Jet2Pt_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 200, 0, 2000);
-   Jet2Pt->Sumw2();
-   Jet3Pt = new TH1F(("Jet3Pt_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 200, 0, 2000);
-   Jet3Pt->Sumw2();
-   GenJet1Pt = new TH1F(("GenJet1Pt_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 200, 0, 2000);
-   GenJet1Pt->Sumw2();
-   GenJet2Pt = new TH1F(("GenJet2Pt_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 200, 0, 2000);
-   GenJet2Pt->Sumw2();
-   GenJet3Pt = new TH1F(("GenJet3Pt_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 200, 0, 2000);
-   GenJet3Pt->Sumw2();
-   PtAve = new TH1F(("PtAve_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2000, 0, 2000);
-   PtAve->Sumw2();
-   GenPtAve = new TH1F(("GenPtAve_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2000, 0, 2000);
-   GenPtAve->Sumw2();
-   Alpha = new TH1F(("Alpha_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
-   Alpha->Sumw2();
-   GenAlpha = new TH1F(("GenAlpha_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
-   GenAlpha->Sumw2();
-   DeltaPhi = new TH1F(("DeltaPhi_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
-   DeltaPhi->Sumw2();
+   // HltDiPFJetAve40
+   NVtx_HltDiPFJetAve40 = new TH1F(("NVtx_HltDiPFJetAve40_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve40->Sumw2();
+   Jet1Pt_HltDiPFJetAve40 = new TH1F(("Jet1Pt_HltDiPFJetAve40_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve40->Sumw2();
+   Jet2Pt_HltDiPFJetAve40 = new TH1F(("Jet2Pt_HltDiPFJetAve40_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve40->Sumw2();
+   Jet3Pt_HltDiPFJetAve40 = new TH1F(("Jet3Pt_HltDiPFJetAve40_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve40->Sumw2();
+   GenJet1Pt_HltDiPFJetAve40 = new TH1F(("GenJet1Pt_HltDiPFJetAve40_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve40->Sumw2();
+   GenJet2Pt_HltDiPFJetAve40 = new TH1F(("GenJet2Pt_HltDiPFJetAve40_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve40->Sumw2();
+   GenJet3Pt_HltDiPFJetAve40 = new TH1F(("GenJet3Pt_HltDiPFJetAve40_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve40->Sumw2();
+   PtAve_HltDiPFJetAve40 = new TH1F(("PtAve_HltDiPFJetAve40_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve40->Sumw2();
+   GenPtAve_HltDiPFJetAve40 = new TH1F(("GenPtAve_HltDiPFJetAve40_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve40->Sumw2();
+   Alpha_HltDiPFJetAve40 = new TH1F(("Alpha_HltDiPFJetAve40_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve40->Sumw2();
+   GenAlpha_HltDiPFJetAve40 = new TH1F(("GenAlpha_HltDiPFJetAve40_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve40->Sumw2();
+   DeltaPhi_HltDiPFJetAve40 = new TH1F(("DeltaPhi_HltDiPFJetAve40_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve40->Sumw2();
+
+   // HltDiPFJetAve80
+   NVtx_HltDiPFJetAve80 = new TH1F(("NVtx_HltDiPFJetAve80_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve80->Sumw2();
+   Jet1Pt_HltDiPFJetAve80 = new TH1F(("Jet1Pt_HltDiPFJetAve80_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve80->Sumw2();
+   Jet2Pt_HltDiPFJetAve80 = new TH1F(("Jet2Pt_HltDiPFJetAve80_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve80->Sumw2();
+   Jet3Pt_HltDiPFJetAve80 = new TH1F(("Jet3Pt_HltDiPFJetAve80_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve80->Sumw2();
+   GenJet1Pt_HltDiPFJetAve80 = new TH1F(("GenJet1Pt_HltDiPFJetAve80_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve80->Sumw2();
+   GenJet2Pt_HltDiPFJetAve80 = new TH1F(("GenJet2Pt_HltDiPFJetAve80_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve80->Sumw2();
+   GenJet3Pt_HltDiPFJetAve80 = new TH1F(("GenJet3Pt_HltDiPFJetAve80_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve80->Sumw2();
+   PtAve_HltDiPFJetAve80 = new TH1F(("PtAve_HltDiPFJetAve80_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve80->Sumw2();
+   GenPtAve_HltDiPFJetAve80 = new TH1F(("GenPtAve_HltDiPFJetAve80_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve80->Sumw2();
+   Alpha_HltDiPFJetAve80 = new TH1F(("Alpha_HltDiPFJetAve80_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve80->Sumw2();
+   GenAlpha_HltDiPFJetAve80 = new TH1F(("GenAlpha_HltDiPFJetAve80_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve80->Sumw2();
+   DeltaPhi_HltDiPFJetAve80 = new TH1F(("DeltaPhi_HltDiPFJetAve80_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve80->Sumw2();
+
+   // HltDiPFJetAve140
+   NVtx_HltDiPFJetAve140 = new TH1F(("NVtx_HltDiPFJetAve140_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve140->Sumw2();
+   Jet1Pt_HltDiPFJetAve140 = new TH1F(("Jet1Pt_HltDiPFJetAve140_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve140->Sumw2();
+   Jet2Pt_HltDiPFJetAve140 = new TH1F(("Jet2Pt_HltDiPFJetAve140_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve140->Sumw2();
+   Jet3Pt_HltDiPFJetAve140 = new TH1F(("Jet3Pt_HltDiPFJetAve140_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve140->Sumw2();
+   GenJet1Pt_HltDiPFJetAve140 = new TH1F(("GenJet1Pt_HltDiPFJetAve140_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve140->Sumw2();
+   GenJet2Pt_HltDiPFJetAve140 = new TH1F(("GenJet2Pt_HltDiPFJetAve140_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve140->Sumw2();
+   GenJet3Pt_HltDiPFJetAve140 = new TH1F(("GenJet3Pt_HltDiPFJetAve140_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve140->Sumw2();
+   PtAve_HltDiPFJetAve140 = new TH1F(("PtAve_HltDiPFJetAve140_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve140->Sumw2();
+   GenPtAve_HltDiPFJetAve140 = new TH1F(("GenPtAve_HltDiPFJetAve140_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve140->Sumw2();
+   Alpha_HltDiPFJetAve140 = new TH1F(("Alpha_HltDiPFJetAve140_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve140->Sumw2();
+   GenAlpha_HltDiPFJetAve140 = new TH1F(("GenAlpha_HltDiPFJetAve140_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve140->Sumw2();
+   DeltaPhi_HltDiPFJetAve140 = new TH1F(("DeltaPhi_HltDiPFJetAve140_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve140->Sumw2();
+
+   // HltDiPFJetAve200
+   NVtx_HltDiPFJetAve200 = new TH1F(("NVtx_HltDiPFJetAve200_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve200->Sumw2();
+   Jet1Pt_HltDiPFJetAve200 = new TH1F(("Jet1Pt_HltDiPFJetAve200_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve200->Sumw2();
+   Jet2Pt_HltDiPFJetAve200 = new TH1F(("Jet2Pt_HltDiPFJetAve200_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve200->Sumw2();
+   Jet3Pt_HltDiPFJetAve200 = new TH1F(("Jet3Pt_HltDiPFJetAve200_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve200->Sumw2();
+   GenJet1Pt_HltDiPFJetAve200 = new TH1F(("GenJet1Pt_HltDiPFJetAve200_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve200->Sumw2();
+   GenJet2Pt_HltDiPFJetAve200 = new TH1F(("GenJet2Pt_HltDiPFJetAve200_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve200->Sumw2();
+   GenJet3Pt_HltDiPFJetAve200 = new TH1F(("GenJet3Pt_HltDiPFJetAve200_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve200->Sumw2();
+   PtAve_HltDiPFJetAve200 = new TH1F(("PtAve_HltDiPFJetAve200_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve200->Sumw2();
+   GenPtAve_HltDiPFJetAve200 = new TH1F(("GenPtAve_HltDiPFJetAve200_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve200->Sumw2();
+   Alpha_HltDiPFJetAve200 = new TH1F(("Alpha_HltDiPFJetAve200_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve200->Sumw2();
+   GenAlpha_HltDiPFJetAve200 = new TH1F(("GenAlpha_HltDiPFJetAve200_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve200->Sumw2();
+   DeltaPhi_HltDiPFJetAve200 = new TH1F(("DeltaPhi_HltDiPFJetAve200_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve200->Sumw2();
+
+   // HltDiPFJetAve260
+   NVtx_HltDiPFJetAve260 = new TH1F(("NVtx_HltDiPFJetAve260_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve260->Sumw2();
+   Jet1Pt_HltDiPFJetAve260 = new TH1F(("Jet1Pt_HltDiPFJetAve260_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve260->Sumw2();
+   Jet2Pt_HltDiPFJetAve260 = new TH1F(("Jet2Pt_HltDiPFJetAve260_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve260->Sumw2();
+   Jet3Pt_HltDiPFJetAve260 = new TH1F(("Jet3Pt_HltDiPFJetAve260_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve260->Sumw2();
+   GenJet1Pt_HltDiPFJetAve260 = new TH1F(("GenJet1Pt_HltDiPFJetAve260_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve260->Sumw2();
+   GenJet2Pt_HltDiPFJetAve260 = new TH1F(("GenJet2Pt_HltDiPFJetAve260_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve260->Sumw2();
+   GenJet3Pt_HltDiPFJetAve260 = new TH1F(("GenJet3Pt_HltDiPFJetAve260_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve260->Sumw2();
+   PtAve_HltDiPFJetAve260 = new TH1F(("PtAve_HltDiPFJetAve260_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve260->Sumw2();
+   GenPtAve_HltDiPFJetAve260 = new TH1F(("GenPtAve_HltDiPFJetAve260_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve260->Sumw2();
+   Alpha_HltDiPFJetAve260 = new TH1F(("Alpha_HltDiPFJetAve260_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve260->Sumw2();
+   GenAlpha_HltDiPFJetAve260 = new TH1F(("GenAlpha_HltDiPFJetAve260_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve260->Sumw2();
+   DeltaPhi_HltDiPFJetAve260 = new TH1F(("DeltaPhi_HltDiPFJetAve260_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve260->Sumw2();
+
+   // HltDiPFJetAve320
+   NVtx_HltDiPFJetAve320 = new TH1F(("NVtx_HltDiPFJetAve320_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve320->Sumw2();
+   Jet1Pt_HltDiPFJetAve320 = new TH1F(("Jet1Pt_HltDiPFJetAve320_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve320->Sumw2();
+   Jet2Pt_HltDiPFJetAve320 = new TH1F(("Jet2Pt_HltDiPFJetAve320_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve320->Sumw2();
+   Jet3Pt_HltDiPFJetAve320 = new TH1F(("Jet3Pt_HltDiPFJetAve320_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve320->Sumw2();
+   GenJet1Pt_HltDiPFJetAve320 = new TH1F(("GenJet1Pt_HltDiPFJetAve320_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve320->Sumw2();
+   GenJet2Pt_HltDiPFJetAve320 = new TH1F(("GenJet2Pt_HltDiPFJetAve320_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve320->Sumw2();
+   GenJet3Pt_HltDiPFJetAve320 = new TH1F(("GenJet3Pt_HltDiPFJetAve320_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve320->Sumw2();
+   PtAve_HltDiPFJetAve320 = new TH1F(("PtAve_HltDiPFJetAve320_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve320->Sumw2();
+   GenPtAve_HltDiPFJetAve320 = new TH1F(("GenPtAve_HltDiPFJetAve320_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve320->Sumw2();
+   Alpha_HltDiPFJetAve320 = new TH1F(("Alpha_HltDiPFJetAve320_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve320->Sumw2();
+   GenAlpha_HltDiPFJetAve320 = new TH1F(("GenAlpha_HltDiPFJetAve320_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve320->Sumw2();
+   DeltaPhi_HltDiPFJetAve320 = new TH1F(("DeltaPhi_HltDiPFJetAve320_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve320->Sumw2();
+
+   // HltDiPFJetAve400
+   NVtx_HltDiPFJetAve400 = new TH1F(("NVtx_HltDiPFJetAve400_" + suffix).c_str(), ("NVtx_" + suffix).c_str(), 60, 0, 60);
+   NVtx_HltDiPFJetAve400->Sumw2();
+   Jet1Pt_HltDiPFJetAve400 = new TH1F(("Jet1Pt_HltDiPFJetAve400_" + suffix).c_str(), ("Jet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet1Pt_HltDiPFJetAve400->Sumw2();
+   Jet2Pt_HltDiPFJetAve400 = new TH1F(("Jet2Pt_HltDiPFJetAve400_" + suffix).c_str(), ("Jet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet2Pt_HltDiPFJetAve400->Sumw2();
+   Jet3Pt_HltDiPFJetAve400 = new TH1F(("Jet3Pt_HltDiPFJetAve400_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   Jet3Pt_HltDiPFJetAve400->Sumw2();
+   GenJet1Pt_HltDiPFJetAve400 = new TH1F(("GenJet1Pt_HltDiPFJetAve400_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet1Pt_HltDiPFJetAve400->Sumw2();
+   GenJet2Pt_HltDiPFJetAve400 = new TH1F(("GenJet2Pt_HltDiPFJetAve400_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet2Pt_HltDiPFJetAve400->Sumw2();
+   GenJet3Pt_HltDiPFJetAve400 = new TH1F(("GenJet3Pt_HltDiPFJetAve400_" + suffix).c_str(), ("GenJet3Pt_" + suffix).c_str(), 250, 0, 2500);
+   GenJet3Pt_HltDiPFJetAve400->Sumw2();
+   PtAve_HltDiPFJetAve400 = new TH1F(("PtAve_HltDiPFJetAve400_" + suffix).c_str(), ("PtAve_" + suffix).c_str(), 2500, 0, 2500);
+   PtAve_HltDiPFJetAve400->Sumw2();
+   GenPtAve_HltDiPFJetAve400 = new TH1F(("GenPtAve_HltDiPFJetAve400_" + suffix).c_str(), ("GenPtAve_" + suffix).c_str(), 2500, 0, 2500);
+   GenPtAve_HltDiPFJetAve400->Sumw2();
+   Alpha_HltDiPFJetAve400 = new TH1F(("Alpha_HltDiPFJetAve400_" + suffix).c_str(), ("Alpha_" + suffix).c_str(), 100, 0, 1);
+   Alpha_HltDiPFJetAve400->Sumw2();
+   GenAlpha_HltDiPFJetAve400 = new TH1F(("GenAlpha_HltDiPFJetAve400_" + suffix).c_str(), ("GenAlpha_" + suffix).c_str(), 100, 0, 1);
+   GenAlpha_HltDiPFJetAve400->Sumw2();
+   DeltaPhi_HltDiPFJetAve400 = new TH1F(("DeltaPhi_HltDiPFJetAve400_" + suffix).c_str(), ("DeltaPhi_" + suffix).c_str(), 320, 0, 3.2);
+   DeltaPhi_HltDiPFJetAve400->Sumw2();
 }
 
 bool controlplots::process(event & evt){
    float ptave = 0.5 * (evt.JetPt[0] + evt.JetPt[1]);
    float genptave = 0.5 * (evt.GenJetPt[0] + evt.GenJetPt[1]);
-   NVtx->Fill(evt.VtxN, evt.Weight);
-   Jet1Pt->Fill(evt.JetPt[0], evt.Weight);
-   Jet2Pt->Fill(evt.JetPt[1], evt.Weight);
-   GenJet1Pt->Fill(evt.GenJetPt[0], evt.Weight);
-   GenJet2Pt->Fill(evt.GenJetPt[1], evt.Weight);
-   PtAve->Fill(ptave, evt.Weight);
-   GenPtAve->Fill(genptave, evt.Weight);
-   if(evt.NobjJet > 2) {
-      Jet3Pt->Fill(evt.JetPt[2], evt.Weight);
-      GenJet3Pt->Fill(evt.GenJetPt[2], evt.Weight);
-      Alpha->Fill(evt.JetPt[2]/ptave, evt.Weight);
-      GenAlpha->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+    
+   // HltDiPFJetAve40
+   if(ptave >= 62 && ptave < 107) {
+      NVtx_HltDiPFJetAve40->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve40->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve40->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve40->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve40->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve40->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve40->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve40->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve40->Fill(deltaPhi, evt.Weight);
    }
-   float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
-   if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
-   DeltaPhi->Fill(deltaPhi, evt.Weight);
+   // HltDiPFJetAve80
+   if(ptave >= 107 && ptave < 175) {
+      NVtx_HltDiPFJetAve80->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve80->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve80->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve80->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve80->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve80->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve80->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve80->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve80->Fill(deltaPhi, evt.Weight);
+   }
+   // HltDiPFJetAve140
+   if(ptave >= 175 && ptave < 242) {
+      NVtx_HltDiPFJetAve140->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve140->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve140->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve140->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve140->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve140->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve140->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve140->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve140->Fill(deltaPhi, evt.Weight);
+   }
+   // HltDiPFJetAve200
+   if(ptave >= 242 && ptave < 310) {
+      NVtx_HltDiPFJetAve200->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve200->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve200->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve200->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve200->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve200->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve200->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve200->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve200->Fill(deltaPhi, evt.Weight);
+   }
+   // HltDiPFJetAve260
+   if(ptave >= 310  && ptave < 379) {
+      NVtx_HltDiPFJetAve260->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve260->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve260->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve260->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve260->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve260->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve260->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve260->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve260->Fill(deltaPhi, evt.Weight);
+   }
+   // HltDiPFJetAve320
+   if(ptave >= 379 && ptave < 467) {
+      NVtx_HltDiPFJetAve320->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve320->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve320->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve320->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve320->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve320->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve320->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve320->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve320->Fill(deltaPhi, evt.Weight);
+   }
+   // HltDiPFJetAve400
+   if(ptave >= 467) {
+      NVtx_HltDiPFJetAve400->Fill(evt.VtxN, evt.Weight);
+      Jet1Pt_HltDiPFJetAve400->Fill(evt.JetPt[0], evt.Weight);
+      Jet2Pt_HltDiPFJetAve400->Fill(evt.JetPt[1], evt.Weight);
+      GenJet1Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[0], evt.Weight);
+      GenJet2Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[1], evt.Weight);
+      PtAve_HltDiPFJetAve400->Fill(ptave, evt.Weight);
+      GenPtAve_HltDiPFJetAve400->Fill(genptave, evt.Weight);
+      if(evt.NobjJet > 2) {
+         Jet3Pt_HltDiPFJetAve400->Fill(evt.JetPt[2], evt.Weight);
+         GenJet3Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[2], evt.Weight);
+         Alpha_HltDiPFJetAve400->Fill(evt.JetPt[2]/ptave, evt.Weight);
+         GenAlpha_HltDiPFJetAve400->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
+      }
+      float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
+      if( deltaPhi > TMath::Pi() ) deltaPhi = 2* TMath::Pi() - deltaPhi;
+      DeltaPhi_HltDiPFJetAve400->Fill(deltaPhi, evt.Weight);
+   }
 
    return true;
 }
@@ -464,7 +743,8 @@ int standard_ptave_binning::ibin(const event & evt) const{
 standard_ptave_binning::~standard_ptave_binning(){}
 
 // ----------------------------------------------------------------- //
-asymm_histos::asymm_histos(const shared_ptr<pt_binning> & binning, const std::string & dir_): ptbinning(binning), dir(dir_){
+asymm_histos::asymm_histos(const boost::shared_ptr<pt_binning> & binning, const std::string & dir_): dir(dir_){
+   ptbinning = binning;
 }
 
 int asymm_histos::nbins_eta() const{
@@ -475,6 +755,25 @@ int asymm_histos::ibin_eta(const event & evt) const{
    if(evt.NobjJet < 2) return -1; 
    float eta0 = abs(evt.JetEta[0]);
    float eta1 = abs(evt.JetEta[1]);
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   const int neta = sizeof(eta_high) / sizeof(float);
+   for(int ieta = 0; ieta < neta; ++ieta){
+      // both the leading and the sub-leading jet must be within the same eta bin extending from eta_lo to eta_hi:
+      float eta_hi = eta_high[ieta];
+      float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
+      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;
+   }
+   return -1;
+}
+
+int asymm_histos::nbins_geneta() const{
+   return 5;
+}
+
+int asymm_histos::ibin_geneta(const event & evt) const{
+   if(evt.NobjJet < 2) return -1; 
+   float eta0 = abs(evt.GenJetEta[0]);
+   float eta1 = abs(evt.GenJetEta[1]);
    const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
@@ -593,7 +892,6 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
    histos_asymm.clear();
    histos_genasymm.clear();
    histos_alphaspectrum.clear();
-   histos_response_reco.clear();
    // create all histograms in the output file:
    outfile.cd();
    if(!dir.empty()){
@@ -613,14 +911,6 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
          tmp_alpha->Sumw2();
          histos_alphaspectrum.push_back(tmp_alpha);
 
-         if(d.mc){
-            stringstream ss3;
-            ss3 << "ResponseRecoPtAve_Pt" << ipt << "_eta" << ieta;
-            TH1F *tmp_response = new TH1F(ss3.str().c_str(), ss3.str().c_str(), 2000, 0.0, 2.0);
-            tmp_response->Sumw2();
-            histos_response_reco.push_back(tmp_response);
-         }
-
          for(int ialpha=0; ialpha < n_alpha; ++ialpha){
             stringstream ss;
             ss << "Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
@@ -632,7 +922,7 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
          if(d.mc){
             for(int igenalpha=0; igenalpha < n_genalpha; ++igenalpha){
                stringstream ss;
-               ss << "Pt" << ipt << "_eta" << ieta << "_genalpha" << igenalpha;
+               ss << "GenPt" << ipt << "_geneta" << ieta << "_genalpha" << igenalpha;
                TH1F *tmp = new TH1F(ss.str().c_str(), ss.str().c_str(), 1000, 0.0, 1.0);
                tmp->Sumw2();
                histos_genasymm.push_back(tmp);
@@ -661,10 +951,14 @@ bool asymm_histos::process(event & evt){
 
    int genptbin = ibin_genpt(evt);
    assert(genptbin < nbins_genpt());
+
+   int genetabin = ibin_geneta(evt);
+   assert(genetabin < nbins_geneta());
     
    const int n_eta = nbins_eta();
    const int n_alpha = nbins_alpha();
    const int n_genalpha = nbins_genalpha();
+   const int n_geneta = nbins_geneta();
 
    // fill histos with alpha spectrum
    float alpha = 0.0;
@@ -674,16 +968,6 @@ bool asymm_histos::process(event & evt){
    }
    int histo_index_alpha = (ptbin * n_eta) + etabin;
    histos_alphaspectrum[histo_index_alpha]->Fill(alpha, evt.Weight);
-
-   // fill response histos for reco pt and reco eta bins
-   if(evt.is_mc) {
-      int histo_index_response = (ptbin * n_eta) + etabin;
-      assert(histo_index_response < int(histos_response_reco.size()));
-      float res1 = evt.JetPt[0] / evt.GenJetPt[0];
-      float res2 = evt.JetPt[1] / evt.GenJetPt[1];
-      if(evt.JetGenJetDeltaR[0] < 0.25) histos_response_reco[histo_index_response]->Fill(res1, evt.Weight);
-      if(evt.JetGenJetDeltaR[1] < 0.25) histos_response_reco[histo_index_response]->Fill(res2, evt.Weight);
-   }
  
    // fill asymmetry histos inclusive in alpha
    float asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
@@ -696,12 +980,12 @@ bool asymm_histos::process(event & evt){
    }
 
    // fill genasymmetry histos inclusive in genalpha for PLI (only for MC)
-   if(evt.is_mc && !(genalphabin < 0 || genptbin < 0) ) {
+   if(evt.is_mc && !(genalphabin < 0 || genptbin < 0 || genetabin < 0) ) {
       float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
       // genasymmetry defined that way should always be positive
       assert(genasymmetry >= 0.0f);
       for(int i = 0; i < n_genalpha-genalphabin; i++) {
-         int histo_index = genptbin * (n_eta * n_genalpha) + etabin * n_genalpha + (i+genalphabin);
+         int histo_index = genptbin * (n_geneta * n_genalpha) + genetabin * n_genalpha + (i+genalphabin);
          assert(histo_index < int(histos_genasymm.size()));
          histos_genasymm[histo_index]->Fill(genasymmetry, evt.Weight);
       }
@@ -721,11 +1005,11 @@ bool asymm_histos::process(event & evt){
 response_histos::response_histos(const std::string & dir_): dir(dir_){
 }
 
-int response_histos::nbins_eta() const{
+int response_histos::nbins_etagen() const{
    return 5;
 }
 
-int response_histos::ibin_eta(const float & eta) const{
+int response_histos::ibin_etagen(const float & eta) const{
    const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
@@ -771,7 +1055,7 @@ void response_histos::start_dataset(const dataset & d, TFile & outfile){
    }
    // create the response histograms: histograms from 0 to 2 with 2000 bins:
    const int n_pt = nbins_ptgen();
-   const int n_eta = nbins_eta();
+   const int n_eta = nbins_etagen();
    for(int ipt=0; ipt<n_pt; ++ipt){
       for(int ieta=0; ieta < n_eta; ++ieta){
          stringstream ss;
@@ -781,6 +1065,11 @@ void response_histos::start_dataset(const dataset & d, TFile & outfile){
          histos_response.push_back(tmp);
       }
    }
+   ResponseCorr_eta0 = new TH2F("ResponseCorr_eta0", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
+   ResponseCorr_eta1 = new TH2F("ResponseCorr_eta1", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
+   ResponseCorr_eta2 = new TH2F("ResponseCorr_eta2", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
+   ResponseCorr_eta3 = new TH2F("ResponseCorr_eta3", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
+   ResponseCorr_eta4 = new TH2F("ResponseCorr_eta4", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
 }
 
 bool response_histos::process(event & evt){
@@ -791,12 +1080,12 @@ bool response_histos::process(event & evt){
    assert(ptbin1 < nbins_ptgen());
    assert(ptbin2 < nbins_ptgen());
     
-   int etabin1 = ibin_eta(abs(evt.GenJetEta[0]));
-   int etabin2 = ibin_eta(abs(evt.GenJetEta[1]));
-   assert(etabin1 < nbins_eta());
-   assert(etabin2 < nbins_eta());
+   int etabin1 = ibin_etagen(abs(evt.GenJetEta[0]));
+   int etabin2 = ibin_etagen(abs(evt.GenJetEta[1]));
+   assert(etabin1 < nbins_etagen());
+   assert(etabin2 < nbins_etagen());
         
-   const int n_eta = nbins_eta();
+   const int n_eta = nbins_etagen();
 
    // fill response histos
    // cout << "GenEta1: " << evt.GenJetEta[0] << endl;
@@ -808,8 +1097,17 @@ bool response_histos::process(event & evt){
    assert(histo_index2 < int(histos_response.size()));
    float res1 = evt.JetPt[0] / evt.GenJetPt[0];
    float res2 = evt.JetPt[1] / evt.GenJetPt[1];
-   if(evt.JetGenJetDeltaR[0] < 0.25 && !(ptbin1 < 0) && !(etabin1 < 0)) histos_response[histo_index1]->Fill(res1, evt.Weight);
-   if(evt.JetGenJetDeltaR[1] < 0.25 && !(ptbin2 < 0) && !(etabin2 < 0)) histos_response[histo_index2]->Fill(res2, evt.Weight);
+   if((evt.JetGenJetDeltaR[0] < 0.25 && !(ptbin1 < 0) && !(etabin1 < 0)) &&
+      (evt.JetGenJetDeltaR[1] < 0.25 && !(ptbin2 < 0) && !(etabin2 < 0))) {
+      histos_response[histo_index1]->Fill(res1, evt.Weight);
+      histos_response[histo_index2]->Fill(res2, evt.Weight);
+
+      if(etabin1 == 0) ResponseCorr_eta0->Fill(res1, res2, evt.Weight);
+      if(etabin1 == 1) ResponseCorr_eta1->Fill(res1, res2, evt.Weight);
+      if(etabin1 == 2) ResponseCorr_eta2->Fill(res1, res2, evt.Weight);
+      if(etabin1 == 3) ResponseCorr_eta3->Fill(res1, res2, evt.Weight);
+      if(etabin1 == 4) ResponseCorr_eta4->Fill(res1, res2, evt.Weight);
+   }
    return true;
 }
 // ----------------------------------------------------------------- //

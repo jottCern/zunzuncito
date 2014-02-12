@@ -1,4 +1,4 @@
-#include "/nfs/dust/test/cms/user/kheine/Kalibri/scripts/tdrstyle_mod.C"
+#include "/afs/desy.de/user/k/kheine/xxl-af-cms/Kalibri/scripts/tdrstyle_mod.C"
 #include <TROOT.h>
 #include <TF1.h>
 #include <TH1.h>
@@ -144,33 +144,26 @@ float GetAsymmWidth(TH1F* htemp, double * xq_IQW, double * yq_IQW)
 
    float width = 0.;
    
-   if( htemp->GetEntries() > 150 ) {
+   if( htemp->GetEntries() > 100 ) {
       htemp->GetXaxis()->SetRange(0,-1);
       htemp->ComputeIntegral();
       htemp->GetQuantiles(nq,yq_IQW,xq_IQW);
       Int_t IQW_high_bin_i = htemp->FindBin(yq_IQW[1]);
-      cout << "Bin where to cut: " << IQW_high_bin_i << endl;
-      cout << "Bins before truncation: " << htemp->GetNbinsX() << endl;
-      cout << "Integral before truncation: " << htemp->Integral() << endl;
-      //  htemp->GetXaxis()->SetRange(0,IQW_high_bin_i);
-      // htemp->SetBins(IQW_high_bin_i, 0, IQW_high_bin_i);
-      // cout << "Bins after truncation: " << htemp->GetNbinsX() << endl;
-      cout << "Integral after truncation: " << htemp->Integral(1, IQW_high_bin_i) << endl;
+    //   cout << "x value: " << htemp->GetBinCenter(IQW_high_bin_i) << endl;
+//       cout << "Bin where to cut: " << IQW_high_bin_i << endl;
+//       cout << "Bins before truncation: " << htemp->GetNbinsX() << endl;
+//       cout << "Integral before truncation: " << htemp->Integral() << endl;
+//       cout << "Integral after truncation: " << htemp->Integral(1, IQW_high_bin_i) << endl;
       cout << "Truncated Integral in %: " << htemp->Integral(1, IQW_high_bin_i)/htemp->Integral() << endl;
-      //  for(int i=1; i <= htemp->GetNbinsX(); i++) {
+
       for(int i=1; i <= IQW_high_bin_i; i++) {
          width += htemp->GetBinContent(i)* std::pow(htemp->GetBinCenter(i), 2);
       }
 
-      // width = TMath::Sqrt(1/(htemp->Integral())*width);
       width = TMath::Sqrt(1/(htemp->Integral(1, IQW_high_bin_i))*width);
    }
 
-   // cout << "width: " << width << endl;
-   //  htemp->GetXaxis()->SetRange(0,-1);
-
-   return width;
-   
+   return width;  
 }
 
 // --------------------------------- //
@@ -180,19 +173,19 @@ void ClosureTest()
    gROOT->ForceStyle();
 
    // input files
-   TFile* mc_smeared_file = new TFile("/nfs/dust/test/cms/user/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_Smeared_backup.root", "READ");
-   TFile* mc_file = new TFile("/nfs/dust/test/cms/user/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat.root", "READ");
+   TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSecondHalf.root", "READ");
+   //TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSmeared.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf.root", "READ");
+   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");
  
    // define helper histos
    TH1F *tmp_mcsmeared = new TH1F();
    TH1F *tmp_mc = new TH1F();
    TH1F *tmp_gen = new TH1F();
-   TH1F *tmp_res = new TH1F();
    tmp_mcsmeared->Sumw2();
    tmp_mc->Sumw2();
    tmp_gen->Sumw2();
-   tmp_res->Sumw2();
-
+ 
    std::vector<float> alpha;
    alpha.push_back(0.1); 
    alpha.push_back(0.125); 
@@ -203,14 +196,13 @@ void ClosureTest()
    alpha.push_back(0.25); 
       
    float pt_bins[14] = {62, 107, 175, 205, 242, 270, 310, 335, 379, 410, 467, 600, 1000, 2000};
-   float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.2};
+   float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.0};
    TH1F *extrapolated_mcsmeared = new TH1F("extrapolated_mcsmeared", "extrapolated_mcsmeared", 13, pt_bins);
    TH1F *extrapolated_mc = new TH1F("extrapolated_mc", "extrapolated_mc", 13, pt_bins);
    TH1F *extrapolated_gen = new TH1F("extrapolated_gen", "extrapolated_gen", 13, pt_bins);
    TH1F *extrapolated_mcsmeared_with_pli = new TH1F("extrapolated_mcsmeared_with_pli", "extrapolated_mcsmeared", 13, pt_bins);
    TH1F *extrapolated_mc_with_pli = new TH1F("extrapolated_mc_with_pli", "extrapolated_mc", 13, pt_bins);
-   TH1F *truth_resolution = new TH1F("truth_resolution", "truth_resolution", 13, pt_bins);
-   TH1F *truth_resolution_smeared = new TH1F("truth_resolution_smeared", "truth_resolution", 13, pt_bins);
+
    TH1F* RatioVsEta = new TH1F("RatioVsEta", "", 5, eta_bins);
    TH1F* RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 5, eta_bins);
    extrapolated_mcsmeared->Sumw2();
@@ -218,15 +210,14 @@ void ClosureTest()
    extrapolated_gen->Sumw2();
    extrapolated_mcsmeared_with_pli->Sumw2();
    extrapolated_mc_with_pli->Sumw2();
-   truth_resolution->Sumw2();
-   truth_resolution_smeared->Sumw2();
+ 
    RatioVsEta->Sumw2();
    RatioVsEta_with_pli->Sumw2();
 
    // how much should be truncated?
    double yq_IQW[2],xq_IQW[2];
    xq_IQW[0] = 0.0;
-   xq_IQW[1] = 0.97;
+   xq_IQW[1] = 0.985;
    
    //// get asymmetry histos
    for(int ieta=0; ieta < 5; ++ieta){
@@ -237,8 +228,7 @@ void ClosureTest()
       extrapolated_gen->Reset();
       extrapolated_mcsmeared_with_pli->Reset();
       extrapolated_mc_with_pli->Reset();
-      truth_resolution->Reset();
-
+    
       for(int ipt=0; ipt < 13; ++ipt){     
          //  cout << "pt Bin: " << ipt << endl;
          std::vector<double> x,x_e,MCy,MCy_e,Datay,Datay_e,Geny,Geny_e;
@@ -247,7 +237,7 @@ void ClosureTest()
          //for(int ialpha=0; ialpha < 3; ++ialpha){
             //  cout << "alpha Bin: " << ialpha << endl;
             TString hname = Form("Pt%i_eta%i_alpha%i", ipt, ieta, ialpha);
-            TString hname_gen = Form("Pt%i_eta%i_genalpha%i", ipt, ieta, ialpha);
+            TString hname_gen = Form("GenPt%i_geneta%i_genalpha%i", ipt, ieta, ialpha);
 
             //  cout << "hname: " << hname << endl;
 
@@ -271,71 +261,12 @@ void ClosureTest()
             double gen_width = GetAsymmWidth(tmp_gen, xq_IQW, yq_IQW);
             double gen_width_err = GetAsymmWidth(tmp_gen, xq_IQW, yq_IQW)/(TMath::Sqrt(2*tmp_gen->GetEffectiveEntries()));
 
-          
             MCy.push_back( mc_width );
             MCy_e.push_back( mc_width_err );
             Datay.push_back( data_width );
             Datay_e.push_back( data_width_err );
             Geny.push_back( gen_width );
             Geny_e.push_back( gen_width_err );
-
-            TCanvas *c5 = new TCanvas("c5", "", 600, 600);
-            c5->SetLogy();
-            tmp_mc->Rebin(10);
-            tmp_mc->Scale(tmp_mcsmeared->Integral()/tmp_mc->Integral());
-            //  tmp_mc->GetYaxis()->SetRangeUser(tmp_mc->GetMinimum(), 100.*tmp_mc->GetMaximum());
-            tmp_mc->GetXaxis()->SetTitle("(p_{T,1} - p_{T,2})/(p_{T,1} + p_{T,2})");
-            tmp_mc->SetLineColor(38);
-            tmp_mc->SetFillColor(38);
-            tmp_mc->Draw("hist");
-            tmp_mcsmeared->Rebin(50);
-            tmp_mcsmeared->SetMarkerStyle(20);
-            tmp_mcsmeared->Draw("same");
-
-            TPaveText *label = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
-            label->AddText("Anti-k_{T} (R=0.5) PFchs Jets");
-            label->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq #bar{ p}_{T} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-            label->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
-            label->Draw("same");
-            
-            TLegend* leg1 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
-            leg1->AddEntry(tmp_mcsmeared,"Asymmetry (Data)","LP");
-            leg1->AddEntry(tmp_mc,"Asymmetry (MC)","LF");
-            leg1->Draw();
-
-           //  TLine *line_data = new TLine(data_width, tmp_data->GetXaxis()->GetXmin(), data_width, 10000.);
-//             line_data->Draw("same");
-
-            if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5->Print("ClosureTest/AsymmHistos.eps(");
-            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5->Print("ClosureTest/AsymmHistos.eps)");
-            else c5->Print("ClosureTest/AsymmHistos.eps"); 
-
-            TCanvas *c5b = new TCanvas("c5b", "", 600, 600);
-            c5b->SetLogy();
-            tmp_gen->Rebin(10);
-            //  tmp_gen->Scale(tmp_data->Integral()/tmp_gen->Integral());
-            //  tmp_gen->GetYaxis()->SetRangeUser(tmp_gen->GetMinimum(), 100.*tmp_gen->GetMaximum());
-            tmp_gen->GetXaxis()->SetTitle("(p_{T,1} - p_{T,2})/(p_{T,1} + p_{T,2})");
-            tmp_gen->SetLineColor(39);
-            tmp_gen->SetFillColor(39);
-            tmp_gen->Draw("hist");
-           
-            TPaveText *label2 = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
-            label2->AddText("Anti-k_{T} (R=0.5) PFchs Jets");
-            label2->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq #bar{ p}_{T} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-            label2->AddText( Form("#alpha_{gen} #leq %0.3f", alpha.at(ialpha)) );
-            label2->Draw("same");
-            
-            TLegend* leg2 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
-            leg2->AddEntry(tmp_gen,"Asymmetry (Gen)","LF");
-            leg2->Draw();
-
-           //  TLine *line_data = new TLine(data_width, tmp_data->GetXaxis()->GetXmin(), data_width, 10000.);
-//             line_data->Draw("same");
-
-            if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5b->Print("ClosureTest/GenAsymmHistos.eps(");
-            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5b->Print("ClosureTest/GenAsymmHistos.eps)");
-            else c5b->Print("ClosureTest/GenAsymmHistos.eps"); 
          }
 
          // Covariance matrices needed for fitting 
@@ -592,253 +523,7 @@ void ClosureTest()
          cout << "Parameter error data after pli: " << par_data_pli_corr_err << endl;
          cout << "Parameter mc after pli: " << par_mc_pli_corr << endl;
          cout << "Parameter error mc after pli: " << par_mc_pli_corr_err << endl;
-
-         // get mc truth resolution
-         TString hname_res = Form("Response_Pt%i_eta%i", ipt, ieta);
-         //TString hname_res = Form("ResponseRecoPtAve_Pt%i_eta%i", ipt, ieta);
-    
-         mc_file->cd();
-         tmp_res = 0;
-         tmp_res = (TH1F*) gDirectory->FindObjectAny(hname_res);
-         tmp_res->Rebin(10);
-
-         double truth_res = 0; 
-         double truth_res_err = 0;
-         double chi2 = 0;
-         double ndf = 0;
-         double mean = 0;
-         double mean_err = 0;
-         if( tmp_res->GetEntries() > 150 ) {
-            mean = tmp_res->GetMean(); 
-            truth_res = tmp_res->GetRMS();
-            tmp_res->Fit("gaus","QNI","", mean - 3 * truth_res,mean + 3 * truth_res);
-            
-            TF1 *f = (TF1*)gROOT->GetFunction("gaus")->Clone();
-            f->SetLineColor(kRed);
-            f->SetLineWidth(3);
-            mean = f->GetParameter(1);
-            truth_res = f->GetParameter(2);
-            
-            if( (tmp_res->Fit(f,"QI","same",mean - 1.5 * truth_res, mean + 1.5 * truth_res) == 0) ) { 
-               mean = f->GetParameter(1);
-               mean_err = f->GetParError(1);
-               truth_res = f->GetParameter(2);
-               truth_res_err = f->GetParError(2);
-               chi2 = f->GetChisquare();
-               ndf = f->GetNDF();
-            }
-         }
-
-         truth_res = truth_res/mean;
-         truth_res_err = TMath::Sqrt(pow(1/mean, 2) * pow(truth_res_err,2) + pow(truth_res/(mean*mean), 2) * pow(mean_err,2));
-
-         double fit_quality = chi2/ndf;
-         
-         truth_resolution->SetBinContent(ipt+1, truth_res);
-         truth_resolution->SetBinError(ipt+1, truth_res_err);
-
-         TCanvas *res = new TCanvas("res", "", 600, 600);
-         res->SetLogy();
-         tmp_res->GetXaxis()->SetTitle("p_{T, reco}/p_{T, gen}");
-         // tmp_res->SetMarkerSize(0.7);
-         tmp_res->Draw();
-
-         TPaveText *label3 = util::LabelFactory::createPaveTextWithOffset(3,1.0,0.5);
-         label3->AddText("Anti-k_{T} (R=0.5) PFchs Jets");
-         label3->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq #bar{ p}_{T} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-         label3->AddText( Form("#chi^{2}/ndf : %0.2f", fit_quality) );
-         label3->Draw("same");
-
-         if(ieta == 0 && ipt == 0 ) res->Print("ClosureTest/TruthResponse.eps(");
-         else if(ieta == 4 && ipt == 12) res->Print("ClosureTest/TruthResponse.eps)");
-         else res->Print("ClosureTest/TruthResponse.eps"); 
-
-         mc_smeared_file->cd();
-         TString hname_res2 = Form("Response_Pt%i_eta%i", ipt, ieta);
-         tmp_res = 0;
-         tmp_res = (TH1F*) gDirectory->FindObjectAny(hname_res2);
-         tmp_res->Rebin(10);
-
-         truth_res = 0; 
-         truth_res_err = 0;
-         chi2 = 0;
-         ndf = 0;
-         mean = 0;
-         mean_err = 0;
-         if( tmp_res->GetEntries() > 150 ) {
-            mean = tmp_res->GetMean(); 
-            truth_res = tmp_res->GetRMS();
-            tmp_res->Fit("gaus","QNI","", mean - 3 * truth_res,mean + 3 * truth_res);
-            
-            TF1 *f = (TF1*)gROOT->GetFunction("gaus")->Clone();
-            f->SetLineColor(kRed);
-            f->SetLineWidth(3);
-            mean = f->GetParameter(1);
-            truth_res = f->GetParameter(2);
-            
-            if( (tmp_res->Fit(f,"QI","same",mean - 1.5 * truth_res, mean + 1.5 * truth_res) == 0) ) { 
-               mean = f->GetParameter(1);
-               mean_err = f->GetParError(1);
-               truth_res = f->GetParameter(2);
-               truth_res_err = f->GetParError(2);
-               chi2 = f->GetChisquare();
-               ndf = f->GetNDF();
-            }
-         }
-
-         truth_res = truth_res/mean;
-         truth_res_err = TMath::Sqrt(pow(1/mean, 2) * pow(truth_res_err,2) + pow(truth_res/(mean*mean), 2) * pow(mean_err,2));
-
-         fit_quality = chi2/ndf;
-         
-         truth_resolution_smeared->SetBinContent(ipt+1, truth_res);
-         truth_resolution_smeared->SetBinError(ipt+1, truth_res_err);
-
-         TCanvas *res2 = new TCanvas("res", "", 600, 600);
-         res2->SetLogy();
-         tmp_res->GetXaxis()->SetTitle("p_{T, reco}/p_{T, gen}");
-         // tmp_res->SetMarkerSize(0.7);
-         tmp_res->Draw();
-
-         TPaveText *label8 = util::LabelFactory::createPaveTextWithOffset(3,1.0,0.5);
-         label8->AddText("Anti-k_{T} (R=0.5) PFchs Jets");
-         label8->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq p_{T, gen} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-         label8->AddText( Form("#chi^{2}/ndf : %0.2f", fit_quality) );
-         label8->Draw("same");
-
-         if(ieta == 0 && ipt == 0 ) res2->Print("ClosureTest/TruthResponse_Smeared.eps(");
-         else if(ieta == 4 && ipt == 12) res2->Print("ClosureTest/TruthResponse_Smeared.eps)");
-         else res2->Print("ClosureTest/TruthResponse_Smeared.eps"); 
-
       }
-
-      TCanvas *c5 = new TCanvas("c3", "", 600, 600);
-      c5->SetBottomMargin(0.25 + 0.75*c5->GetBottomMargin()-0.25*c5->GetTopMargin());
-      c5->cd();
-      truth_resolution->GetXaxis()->SetLabelSize(0);
-      truth_resolution->Draw();
-      truth_resolution_smeared->SetMarkerColor(kRed);
-      truth_resolution_smeared->Draw("same");
-
-      TPad *pad5 = new TPad("pad2a", "pad2a", 0, 0, 1, 1);
-      pad5->SetLogx();
-      pad5->SetTopMargin(0.75 - 0.75*pad5->GetBottomMargin()+0.25*pad5->GetTopMargin());
-      pad5->SetFillStyle(0);
-      pad5->SetFrameFillColor(10);
-      pad5->SetFrameBorderMode(0);
-      pad5->Draw();
-      pad5->cd();
-
-      TH1F* r2 = new TH1F(*truth_resolution);
-      r2->Sumw2();
-      r2->SetXTitle("#bar{ p}_{T} [GeV]");
-      r2->SetYTitle("#sigma_{smeared} - #sigma_{truth} ) / #sigma_{smeared}");
-      r2->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
-      r2->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
-      r2->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
-      r2->GetYaxis()->SetNdivisions(505);
-      r2->SetStats(0);
-      r2->SetMarkerStyle(20);
-      //      r2->SetMarkerSize(1.12);
-      r2->SetMarkerColor(kBlack);
-      r2->Reset();
-      r2->Add(truth_resolution_smeared, 1);
-      r2->Add(truth_resolution, -1);
-      r2->Divide(truth_resolution_smeared);
-      r2->SetMaximum(0.15);
-      r2->SetMinimum(-0.15);
-      r2->Draw("ep");
-      TLine l2;
-      l2.DrawLine(truth_resolution->GetXaxis()->GetXmin(), 0., truth_resolution->GetXaxis()->GetXmax(), 0.);
-      c5->cd();
-
-      TString name5;
-      name5 = Form("ClosureTest/CompareTruthResWithSmearedRes_Eta%i.eps", ieta);
-      c5->Print(name5);
-
-      // fit function for truth resolution
-      TF1 *res_func = new TF1("res_func", "TMath::Sqrt(sign([0])*pow([0]/x,2)+pow([1],2)*pow(x,[2]-1.)+pow([3],2))" );
-      res_func->SetParameters(1.2, 0.5, 0.03, 0.1);
-    
-      // draw res after extrapolations
-      TCanvas *c2 = new TCanvas("c2","",600,600);
-      c2->SetLogx();
-      c2->SetBottomMargin(0.25 + 0.75*c2->GetBottomMargin()-0.25*c2->GetTopMargin());
-      c2->cd();
-      //  truth_resolution->GetXaxis()->SetTitle("#bar{ p}_{T} [GeV]");
-      truth_resolution->GetXaxis()->SetLabelSize(0);
-      truth_resolution->GetYaxis()->SetRangeUser(0, 0.3);
-      truth_resolution->GetYaxis()->SetTitle("#sqrt{2}#sigma_{A}");
-      truth_resolution->SetMarkerStyle(26);
-      truth_resolution->SetMarkerColor(kRed+1);
-      truth_resolution->Draw();
-      truth_resolution->Fit("res_func", "WLQ", "same", truth_resolution->GetBinCenter(truth_resolution->FindFirstBinAbove()), truth_resolution->GetBinCenter(truth_resolution->FindLastBinAbove()) );
-      //  extrapolated_mc->Scale(TMath::Sqrt(2));
-      //  extrapolated_mc->Draw("same");
-      extrapolated_gen->Scale(TMath::Sqrt(2));
-      extrapolated_gen->SetLineColor(kBlue+1);
-      //  extrapolated_gen->Draw("histsame");
-      //extrapolated_mcsmeared->Draw("same");
-      extrapolated_mc_with_pli->Scale(TMath::Sqrt(2));
-      extrapolated_mc_with_pli->SetMarkerStyle(25);
-      extrapolated_mc_with_pli->SetMarkerColor(kBlue+2);
-      extrapolated_mc_with_pli->Draw("same");
-      extrapolated_mcsmeared_with_pli->Scale(TMath::Sqrt(2));
-      extrapolated_mcsmeared_with_pli->SetMarkerColor(41);
-      extrapolated_mcsmeared_with_pli->SetMarkerStyle(27);
-      //  extrapolated_mcsmeared_with_pli->Draw("same");
-
-      TLegend* leg3 = util::LabelFactory::createLegendWithOffset(2,0.175);
-      leg3->AddEntry(truth_resolution,"Truth resolution","P");
-      leg3->AddEntry(extrapolated_mc_with_pli,"Measured resolution","P");
-      // leg3->AddEntry(extrapolated_mcsmeared_with_pli,"Data resolution","P");
-      
-      leg3->Draw();
-      cmsPrel(-1, false , 8);
-
-      TPad *pad2 = new TPad("pad2a", "pad2a", 0, 0, 1, 1);
-      pad2->SetLogx();
-      pad2->SetTopMargin(0.75 - 0.75*pad2->GetBottomMargin()+0.25*pad2->GetTopMargin());
-      pad2->SetFillStyle(0);
-      pad2->SetFrameFillColor(10);
-      pad2->SetFrameBorderMode(0);
-      pad2->Draw();
-      pad2->cd();
-
-      Double_t xMin1 = extrapolated_mc_with_pli->GetXaxis()->GetXmin();
-      Double_t xMax1 = extrapolated_mc_with_pli->GetXaxis()->GetXmax();
-
-      TH1F* r = new TH1F(*extrapolated_mc_with_pli);
-      r->Sumw2();
-      r->SetXTitle("#bar{ p}_{T} [GeV]");
-      r->SetYTitle("#sigma - #sigma_{truth} ) / #sigma");
-      r->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
-      r->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
-      r->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
-      r->GetYaxis()->SetNdivisions(505);
-      r->SetStats(0);
-      r->SetMarkerStyle(20);
-      //      r->SetMarkerSize(1.12);
-      r->SetMarkerColor(kBlack);
-      r->Reset();
-      r->Add(extrapolated_mc_with_pli, 1);
-      r->Add(truth_resolution, -1);
-      r->Divide(extrapolated_mc_with_pli);
-      r->SetMaximum(0.35);
-      r->SetMinimum(-0.35);
-      r->Draw("ep");
-      TLine l;
-      l.DrawLine(xMin1, 0., xMax1, 0.);
-      c2->cd();
-
-      TPaveText *label = util::LabelFactory::createPaveTextWithOffset(2,1.0,0.05);
-      label->AddText("Anti-k_{T} (R=0.5) PFchs Jets");
-      label->AddText( Form("%0.1f #leq |#eta| #leq %0.1f", eta_bins[ieta], eta_bins[ieta+1]) );
-      label->Draw("same");
-
-      TString name2;
-      name2 = Form("ClosureTest/Extrapol_Eta%i.eps", ieta);
-      c2->Print(name2);
 
       // --------------------------------------- //
       // calc data/mc ratio and fit with constant

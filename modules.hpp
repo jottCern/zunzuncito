@@ -5,6 +5,7 @@
 #include "fwd.hpp"
 #include <string>
 #include "TF1.h"
+#include "TH2.h"
 
 
 // call "dump" (from utils) for each event, with a configureable prefix. This is a quick-and-dirty method
@@ -152,7 +153,7 @@ public:
 class asymm_histos: public module{
 public:
     // dir is the directory in which to create the output histograms
-    explicit asymm_histos(const shared_ptr<pt_binning> & binning = shared_ptr<pt_binning>(new standard_ptave_binning), const std::string & dir = "");
+   explicit asymm_histos(const boost::shared_ptr<pt_binning> & binning = boost::shared_ptr<pt_binning>(new standard_ptave_binning), const std::string & dir = "");
     
     virtual void start_dataset(const dataset & d, TFile & outfile);
     virtual bool process(event & evt);
@@ -161,12 +162,11 @@ public:
     }
     
 private:
-    shared_ptr<pt_binning> ptbinning;
+    boost::shared_ptr<pt_binning> ptbinning;
     std::string dir;
     std::vector<TH1F*> histos_asymm;
     std::vector<TH1F*> histos_genasymm;
     std::vector<TH1F*> histos_alphaspectrum;
-    std::vector<TH1F*> histos_response_reco;
     
     // those methods define the binning in eta and alpha. They
     // are called from 'start_dataset' and 'process', which are
@@ -182,6 +182,9 @@ private:
 
     int nbins_genpt() const;
     int ibin_genpt(const event & evt) const;
+
+    int nbins_geneta() const;
+    int ibin_geneta(const event & evt) const;
 };
 
 // create the response histograms: one for each bin in (ptgen, geneta).
@@ -200,12 +203,13 @@ public:
 private:
     std::string dir;
     std::vector<TH1F*> histos_response;
+    TH2F *ResponseCorr_eta0, *ResponseCorr_eta1, *ResponseCorr_eta2, *ResponseCorr_eta3, *ResponseCorr_eta4;
     
     // those methods define the binning in geneta. They
     // are called from 'start_dataset' and 'process', which are
     // independent of the pt and eta binning.
-    int nbins_eta() const;
-    int ibin_eta(const float & eta) const;
+    int nbins_etagen() const;
+    int ibin_etagen(const float & eta) const;
 
     int nbins_ptgen() const;
     int ibin_ptgen(const float & ptgen) const;
@@ -223,7 +227,7 @@ public:
     }
 };
 
-// apply diJet events selection cuts
+// apply diJet event selection cuts
 class eventcuts: public module {
 public:
     virtual bool process(event & evt);
@@ -250,7 +254,13 @@ public:
 
 private:
     std::string suffix, dir;
-    TH1F* NVtx, *Jet1Pt, *Jet2Pt, *Jet3Pt, *GenJet1Pt, *GenJet2Pt, *GenJet3Pt, *PtAve, *GenPtAve, *Alpha, *GenAlpha, *DeltaPhi;
+    TH1F* NVtx_HltDiPFJetAve40, *Jet1Pt_HltDiPFJetAve40, *Jet2Pt_HltDiPFJetAve40, *Jet3Pt_HltDiPFJetAve40, *GenJet1Pt_HltDiPFJetAve40, *GenJet2Pt_HltDiPFJetAve40, *GenJet3Pt_HltDiPFJetAve40, *PtAve_HltDiPFJetAve40, *GenPtAve_HltDiPFJetAve40, *Alpha_HltDiPFJetAve40, *GenAlpha_HltDiPFJetAve40, *DeltaPhi_HltDiPFJetAve40;
+    TH1F* NVtx_HltDiPFJetAve80, *Jet1Pt_HltDiPFJetAve80, *Jet2Pt_HltDiPFJetAve80, *Jet3Pt_HltDiPFJetAve80, *GenJet1Pt_HltDiPFJetAve80, *GenJet2Pt_HltDiPFJetAve80, *GenJet3Pt_HltDiPFJetAve80, *PtAve_HltDiPFJetAve80, *GenPtAve_HltDiPFJetAve80, *Alpha_HltDiPFJetAve80, *GenAlpha_HltDiPFJetAve80, *DeltaPhi_HltDiPFJetAve80;
+    TH1F* NVtx_HltDiPFJetAve140, *Jet1Pt_HltDiPFJetAve140, *Jet2Pt_HltDiPFJetAve140, *Jet3Pt_HltDiPFJetAve140, *GenJet1Pt_HltDiPFJetAve140, *GenJet2Pt_HltDiPFJetAve140, *GenJet3Pt_HltDiPFJetAve140, *PtAve_HltDiPFJetAve140, *GenPtAve_HltDiPFJetAve140, *Alpha_HltDiPFJetAve140, *GenAlpha_HltDiPFJetAve140, *DeltaPhi_HltDiPFJetAve140;
+    TH1F* NVtx_HltDiPFJetAve200, *Jet1Pt_HltDiPFJetAve200, *Jet2Pt_HltDiPFJetAve200, *Jet3Pt_HltDiPFJetAve200, *GenJet1Pt_HltDiPFJetAve200, *GenJet2Pt_HltDiPFJetAve200, *GenJet3Pt_HltDiPFJetAve200, *PtAve_HltDiPFJetAve200, *GenPtAve_HltDiPFJetAve200, *Alpha_HltDiPFJetAve200, *GenAlpha_HltDiPFJetAve200, *DeltaPhi_HltDiPFJetAve200;
+    TH1F* NVtx_HltDiPFJetAve260, *Jet1Pt_HltDiPFJetAve260, *Jet2Pt_HltDiPFJetAve260, *Jet3Pt_HltDiPFJetAve260, *GenJet1Pt_HltDiPFJetAve260, *GenJet2Pt_HltDiPFJetAve260, *GenJet3Pt_HltDiPFJetAve260, *PtAve_HltDiPFJetAve260, *GenPtAve_HltDiPFJetAve260, *Alpha_HltDiPFJetAve260, *GenAlpha_HltDiPFJetAve260, *DeltaPhi_HltDiPFJetAve260;
+    TH1F* NVtx_HltDiPFJetAve320, *Jet1Pt_HltDiPFJetAve320, *Jet2Pt_HltDiPFJetAve320, *Jet3Pt_HltDiPFJetAve320, *GenJet1Pt_HltDiPFJetAve320, *GenJet2Pt_HltDiPFJetAve320, *GenJet3Pt_HltDiPFJetAve320, *PtAve_HltDiPFJetAve320, *GenPtAve_HltDiPFJetAve320, *Alpha_HltDiPFJetAve320, *GenAlpha_HltDiPFJetAve320, *DeltaPhi_HltDiPFJetAve320;
+    TH1F* NVtx_HltDiPFJetAve400, *Jet1Pt_HltDiPFJetAve400, *Jet2Pt_HltDiPFJetAve400, *Jet3Pt_HltDiPFJetAve400, *GenJet1Pt_HltDiPFJetAve400, *GenJet2Pt_HltDiPFJetAve400, *GenJet3Pt_HltDiPFJetAve400, *PtAve_HltDiPFJetAve400, *GenPtAve_HltDiPFJetAve400, *Alpha_HltDiPFJetAve400, *GenAlpha_HltDiPFJetAve400, *DeltaPhi_HltDiPFJetAve400;
 };
 
 // use only reasonable MC events --> remove events with large weight and large response

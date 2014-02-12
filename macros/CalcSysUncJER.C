@@ -1,4 +1,4 @@
-#include "/nfs/dust/test/cms/user/kheine/Kalibri/scripts/tdrstyle_mod.C"
+#include "/afs/desy.de/user/k/kheine/xxl-af-cms/Kalibri/scripts/tdrstyle_mod.C"
 #include <TROOT.h>
 #include <TF1.h>
 #include <TH1.h>
@@ -10,6 +10,12 @@
 #include <TMath.h>
 #include <TLegend.h>
 
+#include "util/utils.h"
+#include "util/HistOps.h"
+#include "util/FileOps.h"
+#include "util/LabelFactory.h"
+#include "util/StyleSettings.h"
+
 #include <vector>
 #include <string>
 #include <fstream>
@@ -20,35 +26,40 @@
 void CalcSysUncJER()
 {
    setTDRStyle();
+   // gStyle->SetHatchesSpacing(1.0);
+   //  gStyle->SetHatchesLineWidth(10);
+
+   // gStyle->SetErrorX();
+   //  gROOT->ForceStyle();
 
    // ------------------------------------------------------------------ //
    // get files with nominal value and variations
    // nominal values
-   TFile* file_nominal = new TFile("Extrapolation/JER_RatioVsEta_nominal.root", "READ");
+   TFile* file_nominal = new TFile("Extrapolation/JER_RatioVsEta_final.root", "READ");
 
    // jec down
-   TFile* file_jecDOWN = new TFile("Extrapolation/JER_RatioVsEta_JECdown.root", "READ");
+   TFile* file_jecDOWN = new TFile("Extrapolation/JER_RatioVsEta_JECdown_final.root", "READ");
 
    // jec up
-   TFile* file_jecUP = new TFile("Extrapolation/JER_RatioVsEta_JECup.root", "READ");
+   TFile* file_jecUP = new TFile("Extrapolation/JER_RatioVsEta_JECup_final.root", "READ");
 
    // pli down
-   TFile* file_pliDOWN = new TFile("Extrapolation/JER_RatioVsEta_PLIdown.root", "READ");
+   TFile* file_pliDOWN = new TFile("Extrapolation/JER_RatioVsEta_PLIdown_final.root", "READ");
 
    // pli up
-   TFile* file_pliUP = new TFile("Extrapolation/JER_RatioVsEta_PLIup.root", "READ");
+   TFile* file_pliUP = new TFile("Extrapolation/JER_RatioVsEta_PLIup_final.root", "READ");
 
    // alpha spectrum reweighting
-   TFile* file_alpha = new TFile("Extrapolation/JER_RatioVsEta_ReweightAlphaSpectrum.root", "READ");
+   TFile* file_alpha = new TFile("Extrapolation/JER_RatioVsEta_ReweightAlphaSpectrum_final.root", "READ");
 
    // PU reweighting
-   TFile* file_pu = new TFile("Extrapolation/JER_RatioVsEta_MBXS73500.root", "READ");
+   TFile* file_pu = new TFile("Extrapolation/JER_RatioVsEta_MBXS73500_final.root", "READ");
 
    // extrapolation range (low alpha)
-   TFile* file_alpha_low = new TFile("Extrapolation/JER_RatioVsEta_FirstThreeAlphaPoints.root", "READ");
+   TFile* file_alpha_low = new TFile("Extrapolation/JER_RatioVsEta_FirstThreeAlphaPoints_final.root", "READ");
 
    // extrapolation range (high alpha)
-   TFile* file_alpha_high = new TFile("Extrapolation/JER_RatioVsEta_LastThreeAlphaPoints.root", "READ");
+   TFile* file_alpha_high = new TFile("Extrapolation/JER_RatioVsEta_LastThreeAlphaPoints_final.root", "READ");
 
    // ------------------------------------------------------------------ //
    // define histos needed for uncertainties
@@ -102,6 +113,8 @@ void CalcSysUncJER()
 
       double diff = bin_content_pu - bin_content_nominal;
 
+      //  cout << "PU i diff: " << i << "  "  << diff << endl;
+
       if( diff > 0 ) {
          RatioPUUp->SetBinContent(i, bin_content_pu);
          RatioPUDown->SetBinContent(i, bin_content_nominal - diff);
@@ -111,6 +124,15 @@ void CalcSysUncJER()
          RatioPUUp->SetBinContent(i, bin_content_nominal - diff);
       }
    }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "PU Uncertainty : " << endl;
+   cout << "Eta0 : " << (RatioPUUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioPUUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioPUUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioPUUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioPUUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
 
    // calc symmetric AlphaReweight errors
    TH1F *RatioAlphaReweightDown = new TH1F(*RatioAlphaReweightUp);
@@ -122,6 +144,8 @@ void CalcSysUncJER()
 
       double diff = bin_content_alpha - bin_content_nominal;
 
+      //  cout << "Alpha reweight i diff: " << i << "  "  << diff << endl;
+
       if( diff > 0 ) {
          RatioAlphaReweightUp->SetBinContent(i, bin_content_alpha);
          RatioAlphaReweightDown->SetBinContent(i, bin_content_nominal - diff);
@@ -132,14 +156,109 @@ void CalcSysUncJER()
       }
    }
 
-   // "repair" last eta bin for JEC
-   double bin_content_JEC = RatioJECDown->GetBinContent(5); 
-   double bin_content_nominal = RatioNominal->GetBinContent(5); 
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Alpha Spectrum : " << endl;
+   cout << "Eta0 : " << (RatioAlphaReweightUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioAlphaReweightUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioAlphaReweightUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioAlphaReweightUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioAlphaReweightUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
 
-   double diff = bin_content_JEC - bin_content_nominal;
+   // calc symmetric JEC errors
+   for (int i = 1; i < RatioJECDown->GetNbinsX()+1; i++) {
+      double bin_content_jec_low = RatioJECDown->GetBinContent(i);
+      double bin_content_jec_high = RatioJECUp->GetBinContent(i);
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
 
-   RatioJECUp->SetBinContent(5, bin_content_JEC);
-   RatioJECDown->SetBinContent(5, bin_content_nominal - diff);
+      double diff_low = bin_content_jec_low - bin_content_nominal;
+      double diff_high = bin_content_jec_high - bin_content_nominal;
+      double diff = 0;
+
+      //   cout << "JEC i diff low: " << i << "  "  << diff_low << endl;
+      //  cout << "JEC i diff high: " << i << "  "  << diff_high << endl;
+
+      if( diff_low > 0 && diff_high > 0 || diff_low < 0 && diff_high < 0) {
+         if(diff_low < 0 && diff_high < 0) {
+            if( diff_low > diff_high) diff = TMath::Abs(diff_high);
+            else diff = TMath::Abs(diff_low);
+         }
+         else {
+            if( diff_low < diff_high) diff = diff_high;
+            else diff = diff_low;
+         }
+      }
+      else {
+         diff = 0.5 * (bin_content_jec_high - bin_content_jec_low);
+      }
+
+      //  cout << "JEC i diff : " << i << "  "  << diff << endl;
+
+      if( diff > 0 ) {
+         RatioJECDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioJECUp->SetBinContent(i, bin_content_nominal + diff);
+      }
+      else if( diff < 0) {
+         RatioJECDown->SetBinContent(i, bin_content_nominal - TMath::Abs(diff));
+         RatioJECUp->SetBinContent(i, bin_content_nominal + TMath::Abs(diff));
+      }
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "JEC : " << endl;
+   cout << "Eta0 : " << (RatioJECUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioJECUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioJECUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioJECUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioJECUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
+
+   // calc symmetric PLI errors
+   for (int i = 1; i < RatioPLIDown->GetNbinsX()+1; i++) {
+      double bin_content_pli_low = RatioPLIDown->GetBinContent(i);
+      double bin_content_pli_high = RatioPLIUp->GetBinContent(i);
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
+
+      double diff_low = bin_content_pli_low - bin_content_nominal;
+      double diff_high = bin_content_pli_high - bin_content_nominal;
+      double diff = 0;
+
+      //   cout << "PLI i diff low: " << i << "  "  << diff_low << endl;
+      //   cout << "PLI i diff high: " << i << "  "  << diff_high << endl;
+
+      if( diff_low > 0 && diff_high > 0 || diff_low < 0 && diff_high < 0) {
+         if(diff_low < 0 && diff_high < 0) {
+            if( diff_low > diff_high) diff = TMath::Abs(diff_high);
+            else diff = TMath::Abs(diff_low);
+         }
+         else {
+            if( diff_low < diff_high) diff = diff_high;
+            else diff = diff_low;
+         }
+      }
+      else {
+         diff = 0.5 * (bin_content_pli_high - bin_content_pli_low);
+      }
+
+      if( diff > 0 ) {
+         RatioPLIDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioPLIUp->SetBinContent(i, bin_content_nominal + diff);
+      }
+      else if( diff < 0) {
+         RatioPLIDown->SetBinContent(i, bin_content_nominal - TMath::Abs(diff));
+         RatioPLIUp->SetBinContent(i, bin_content_nominal + TMath::Abs(diff));
+      }
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "PLI : " << endl;
+   cout << "Eta0 : " << (RatioPLIUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioPLIUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioPLIUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioPLIUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioPLIUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
+
 
    // calc symmetric AlphaRange errors
    for (int i = 1; i < RatioAlphaLow->GetNbinsX()+1; i++) {
@@ -151,17 +270,41 @@ void CalcSysUncJER()
       double diff_high = bin_content_alpha_high - bin_content_nominal;
       double diff = 0;
 
+      //  cout << "Alpha Range i diff low: " << i << "  "  << diff_low << endl;
+      //   cout << "Alpha Range i diff high: " << i << "  "  << diff_high << endl;
+
       if( diff_low > 0 && diff_high > 0 || diff_low < 0 && diff_high < 0) {
-         if( diff_low > diff_high) diff = diff_low;
-         else diff = diff_high;
+         if(diff_low < 0 && diff_high < 0) {
+            if( diff_low > diff_high) diff = TMath::Abs(diff_high);
+            else diff = TMath::Abs(diff_low);
+         }
+         else {
+            if( diff_low < diff_high) diff = diff_high;
+            else diff = diff_low;
+         }
       }
       else {
          diff = 0.5 * (bin_content_alpha_high - bin_content_alpha_low);
       }
 
-      RatioAlphaLow->SetBinContent(i, bin_content_nominal - diff);
-      RatioAlphaHigh->SetBinContent(i, bin_content_nominal + diff);
+      if( diff > 0 ) {
+         RatioAlphaLow->SetBinContent(i, bin_content_nominal - diff);
+         RatioAlphaHigh->SetBinContent(i, bin_content_nominal + diff);
+      }
+      else if( diff < 0 ) {
+         RatioAlphaLow->SetBinContent(i, bin_content_nominal - TMath::Abs(diff));
+         RatioAlphaHigh->SetBinContent(i, bin_content_nominal + TMath::Abs(diff));
+      }
    }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Alpha Range: " << endl;
+   cout << "Eta0 : " << (RatioAlphaHigh->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioAlphaHigh->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioAlphaHigh->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioAlphaHigh->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioAlphaHigh->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
 
 
    // ------------------------------------------------------------------ //
@@ -198,7 +341,7 @@ void CalcSysUncJER()
                                         pow(RatioNominal->GetBinContent(2) - 
                                             RatioAlphaReweightDown->GetBinContent(2),2) +
                                         pow(RatioNominal->GetBinContent(2) - 
-                                            RatioAlphaLow->GetBinContent(3),2) + 
+                                            RatioAlphaLow->GetBinContent(2),2) + 
                                         pow(RatioNominal->GetBinContent(2) - 
                                             RatioPUDown->GetBinContent(2),2));
    double eta2_sysUncDown = TMath::Sqrt(pow(RatioNominal->GetBinContent(3) - 
@@ -286,7 +429,18 @@ void CalcSysUncJER()
                                           RatioNominal->GetBinContent(5),2));
 
    // ------------------------------------------------------------------ //
+   // show values on screen with stat. uncertainty
+   cout << "eta 0 stat.: " << RatioNominal->GetBinContent(1) << " +- " << RatioNominal->GetBinError(1) << endl;
+   cout << "eta 1 stat.: " << RatioNominal->GetBinContent(2) << " +- " << RatioNominal->GetBinError(2) << endl;
+   cout << "eta 2 stat.: " << RatioNominal->GetBinContent(3) << " +- " << RatioNominal->GetBinError(3) << endl;
+   cout << "eta 3 stat.: " << RatioNominal->GetBinContent(4) << " +- " << RatioNominal->GetBinError(4) << endl;
+   cout << "eta 4 stat.: " << RatioNominal->GetBinContent(5) << " +- " << RatioNominal->GetBinError(5) << endl;
+
+   // ------------------------------------------------------------------ //
+
+   // ------------------------------------------------------------------ //
    // show values on screen with sys. uncertainty
+   cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "eta 0 sys.: " << RatioNominal->GetBinContent(1) << " + " << eta0_sysUncUp << " - " << eta0_sysUncDown << endl;
    cout << "eta 1 sys.: " << RatioNominal->GetBinContent(2) << " + " << eta1_sysUncUp << " - " << eta1_sysUncDown << endl;
    cout << "eta 2 sys.: " << RatioNominal->GetBinContent(3) << " + " << eta2_sysUncUp << " - " << eta2_sysUncDown << endl;
@@ -309,12 +463,12 @@ void CalcSysUncJER()
 
    // ------------------------------------------------------------------ //
    // fill total uncertainties to TGraph
-   TGraphAsymmErrors *Res_2012 = new TGraphAsymmErrors(RatioNominal);
-   Res_2012->SetPointError(0, 0., 0., eta0_TotalUncDown, eta0_TotalUncUp);
-   Res_2012->SetPointError(1, 0., 0., eta1_TotalUncDown, eta1_TotalUncUp);
-   Res_2012->SetPointError(2, 0., 0., eta2_TotalUncDown, eta2_TotalUncUp);
-   Res_2012->SetPointError(3, 0., 0., eta3_TotalUncDown, eta3_TotalUncUp);
-   Res_2012->SetPointError(4, 0., 0., eta4_TotalUncDown, eta4_TotalUncUp);
+   TGraphAsymmErrors *Res_2012_total = new TGraphAsymmErrors(RatioNominal);
+   Res_2012_total->SetPointError(0, 0.25, 0.25, eta0_TotalUncDown, eta0_TotalUncUp);
+   Res_2012_total->SetPointError(1, 0.3, 0.3, eta1_TotalUncDown, eta1_TotalUncUp);
+   Res_2012_total->SetPointError(2, 0.3, 0.3, eta2_TotalUncDown, eta2_TotalUncUp);
+   Res_2012_total->SetPointError(3, 0.3, 0.3, eta3_TotalUncDown, eta3_TotalUncUp);
+   Res_2012_total->SetPointError(4, 1.45, 1.45, eta4_TotalUncDown, eta4_TotalUncUp);
 
    // ------------------------------------------------------------------ //
    // show values on screen with tot. uncertainty
@@ -334,49 +488,59 @@ void CalcSysUncJER()
    RatioNominal->GetYaxis()->SetRangeUser(0.8, 1.5);
    RatioNominal->SetMarkerSize(1.);
    RatioNominal->Draw();
+   RatioJECDown->GetXaxis()->SetRangeUser(0., 5.);
    RatioJECDown->SetMarkerSize(1.);
    RatioJECDown->SetMarkerStyle(22);
    RatioJECDown->SetMarkerColor(kRed+1);
    RatioJECDown->Draw("same");
+   RatioJECUp->GetXaxis()->SetRangeUser(0., 5.);
    RatioJECUp->SetMarkerSize(1.);
    RatioJECUp->SetMarkerStyle(22);
    RatioJECUp->SetMarkerColor(kRed+1);
    RatioJECUp->Draw("same");
+   RatioPLIDown->GetXaxis()->SetRangeUser(0., 5.);
    RatioPLIDown->SetMarkerSize(1.);
    RatioPLIDown->SetMarkerStyle(24);
    RatioPLIDown->SetMarkerColor(kGreen+1);
    RatioPLIDown->Draw("same");
+   RatioPLIUp->GetXaxis()->SetRangeUser(0., 5.);
    RatioPLIUp->SetMarkerSize(1.);
    RatioPLIUp->SetMarkerStyle(24);
    RatioPLIUp->SetMarkerColor(kGreen+1);
    RatioPLIUp->Draw("same");
+   RatioAlphaReweightDown->GetXaxis()->SetRangeUser(0., 5.);
    RatioAlphaReweightDown->SetMarkerSize(1.);
    RatioAlphaReweightDown->SetMarkerStyle(21);
    RatioAlphaReweightDown->SetMarkerColor(kSpring+4);
    RatioAlphaReweightDown->Draw("same");
+   RatioAlphaReweightUp->GetXaxis()->SetRangeUser(0., 5.);
    RatioAlphaReweightUp->SetMarkerSize(1.);
    RatioAlphaReweightUp->SetMarkerStyle(21);
    RatioAlphaReweightUp->SetMarkerColor(kSpring+4);
    RatioAlphaReweightUp->Draw("same");
+   RatioPUDown->GetXaxis()->SetRangeUser(0., 5.);
    RatioPUDown->SetMarkerSize(1.);
    RatioPUDown->SetMarkerStyle(23);
    RatioPUDown->SetMarkerColor(kCyan+1);
    RatioPUDown->Draw("same");
+   RatioPUUp->GetXaxis()->SetRangeUser(0., 5.);
    RatioPUUp->SetMarkerSize(1.);
    RatioPUUp->SetMarkerStyle(23);
    RatioPUUp->SetMarkerColor(kCyan+1);
    RatioPUUp->Draw("same");
+   RatioAlphaLow->GetXaxis()->SetRangeUser(0., 5.);
    RatioAlphaLow->SetMarkerSize(1.);
    RatioAlphaLow->SetMarkerStyle(24);
    RatioAlphaLow->SetMarkerColor(kMagenta+1);
    RatioAlphaLow->Draw("same");
+   RatioAlphaHigh->GetXaxis()->SetRangeUser(0., 5.);
    RatioAlphaHigh->SetMarkerSize(1.);
    RatioAlphaHigh->SetMarkerStyle(24);
    RatioAlphaHigh->SetMarkerColor(kMagenta+1);
    RatioAlphaHigh->Draw("same");
    RatioNominal->Draw("same");
 
-   TLegend *leg = new TLegend(0.44, 0.17, 0.74, 0.4);
+   TLegend *leg = new TLegend(0.17, 0.17, 0.54, 0.4);
    leg->SetBorderSize(0);
    // leg->SetBorderMode(0);
    leg->SetFillColor(0);
@@ -393,8 +557,8 @@ void CalcSysUncJER()
   
    leg->Draw("same");
 
-   c->Print("Results/JER_2012_uncertainties.eps");
-   c->Print("Results/JER_2012_uncertainties.png");
+   c->Print("Results/JER_2012_uncertainties_final.eps");
+   c->Print("Results/JER_2012_uncertainties_final.png");
 
 
    // ------------------------------------------------------------------ //
@@ -405,42 +569,42 @@ void CalcSysUncJER()
    TCanvas *c2 = new TCanvas();
    dummy->GetXaxis()->SetTitle("|#eta|");
    dummy->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
-   dummy->GetXaxis()->SetRangeUser(0., 5.);
-   dummy->GetYaxis()->SetRangeUser(0.8, 1.5);
+   dummy->GetXaxis()->SetRangeUser(0., 5.0);
+   dummy->GetYaxis()->SetRangeUser(0.9, 1.7);
    dummy->Draw();
   
-   Res_2012->SetMarkerStyle(20);
-   Res_2012->SetMarkerSize(1.4);
-   Res_2012->SetFillColor(kYellow-3);
-   Res_2012->SetFillStyle(3001);
-   Res_2012->SetLineColor(kYellow-3);
-   Res_2012->DrawClone("e3Psame");
+   Res_2012_total->SetMarkerStyle(20);
+   Res_2012_total->SetMarkerSize(1.4);
+   //   Res_2012_total->SetFillColor(kYellow-3);
+   Res_2012_total->SetFillColor(kCyan-2);
+   Res_2012_total->SetLineColor(kCyan-2);
+   Res_2012_total->SetFillStyle(1001);
+   //  Res_2012_total->SetFillStyle(3001);
+   //  Res_2012_total->SetLineColor(kYellow-3);
+   Res_2012_total->DrawClone("2psame");
 
-   Res_2012->SetPointError(0, 0., 0., 0., 0.);
-   Res_2012->SetPointError(1, 0., 0., 0., 0.);
-   Res_2012->SetPointError(2, 0., 0., 0., 0.);
-   Res_2012->SetPointError(3, 0., 0., 0., 0.);
-   Res_2012->SetPointError(4, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(0, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(1, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(2, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(3, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(4, 0., 0., 0., 0.);
 
-   Res_2012->GetXaxis()->SetRangeUser(0., 5.);
-   Res_2012->Draw("psame");
+   TPaveText *label = util::LabelFactory::createPaveTextWithOffset(1,1.05,0.01);
+   label->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+   label->Draw("same");
 
-   // cmsPrel();
-
-   TLegend *leg2 = new TLegend(0.54, 0.27, 0.74, 0.35);
-   leg2->SetBorderSize(0);
-   // leg2->SetBorderMode(0);
-   leg2->SetFillColor(0);
-   leg2->SetFillStyle(0);
-   leg2->SetTextFont(42);
-   leg2->SetTextSize(0.035);
-
-   leg2->AddEntry(Res_2012," JER 2012 (total error)", "pfl");
-  
+   TLegend* leg2 = util::LabelFactory::createLegendColWithOffset(1, 1.05, 0.07);
+   leg2->AddEntry(Res_2012_total,"JER 2012 Dijets (with tot. unc.)","PF");
+    
    leg2->Draw("same");
 
-   c2->Print("Results/JER_2012.eps");
-   c2->Print("Results/JER_2012.png");
+   Res_2012_total->GetXaxis()->SetRangeUser(0., 5);
+   Res_2012_total->Draw("psame");
+   gPad->RedrawAxis();
+
+   c2->Print("Results/JER_2012_final.eps");
+   c2->Print("Results/JER_2012_final.png");
+   c2->Print("Results/JER_2012_final.pdf");
 
    // ------------------------------------------------------------------ //
    // plot nominal values with total unc. + 2011 comparison
@@ -453,51 +617,51 @@ void CalcSysUncJER()
    Res_2011Final->SetBinContent(5, 1.288);
 
    TGraphAsymmErrors *Res_2011 = new TGraphAsymmErrors(Res_2011Final);
-   Res_2011->SetPointError(0, 0., 0., 0.063, 0.062);
-   Res_2011->SetPointError(1, 0., 0., 0.057, 0.056);
-   Res_2011->SetPointError(2, 0., 0., 0.065, 0.064);
-   Res_2011->SetPointError(3, 0., 0., 0.094, 0.092);
-   Res_2011->SetPointError(4, 0., 0., 0.200, 0.199);
+   Res_2011->SetPointError(0, 025., 0.25, 0.063, 0.062);
+   Res_2011->SetPointError(1, 0.3, 0.3, 0.057, 0.056);
+   Res_2011->SetPointError(2, 0.3, 0.3, 0.065, 0.064);
+   Res_2011->SetPointError(3, 0.3, 0.3, 0.094, 0.092);
+   Res_2011->SetPointError(4, 1.35, 1.35, 0.200, 0.199);
  
    TCanvas *c3 = new TCanvas();
    dummy->GetXaxis()->SetTitle("|#eta|");
    dummy->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
    dummy->GetXaxis()->SetRangeUser(0., 5.);
-   dummy->GetYaxis()->SetRangeUser(0.8, 1.5);
+   dummy->GetYaxis()->SetRangeUser(0.9, 2.0);
    dummy->Draw();
 
-   Res_2011->SetMarkerStyle(26);
-   Res_2011->SetMarkerSize(1.4);
-   Res_2011->SetFillColor(kGray);
-   Res_2011->SetFillStyle(3001);
-   Res_2011->SetLineColor(kGray);
-   Res_2011->DrawClone("e3psame");
-
-   Res_2012->SetPointError(0, 0., 0., eta0_TotalUncDown, eta0_TotalUncUp);
-   Res_2012->SetPointError(1, 0., 0., eta1_TotalUncDown, eta1_TotalUncUp);
-   Res_2012->SetPointError(2, 0., 0., eta2_TotalUncDown, eta2_TotalUncUp);
-   Res_2012->SetPointError(3, 0., 0., eta3_TotalUncDown, eta3_TotalUncUp);
-   Res_2012->SetPointError(4, 0., 0., eta4_TotalUncDown, eta4_TotalUncUp);
+   Res_2012_total->SetPointError(0, 0.25, 0.25, eta0_TotalUncDown, eta0_TotalUncUp);
+   Res_2012_total->SetPointError(1, 0.3, 0.3, eta1_TotalUncDown, eta1_TotalUncUp);
+   Res_2012_total->SetPointError(2, 0.3, 0.3, eta2_TotalUncDown, eta2_TotalUncUp);
+   Res_2012_total->SetPointError(3, 0.3, 0.3, eta3_TotalUncDown, eta3_TotalUncUp);
+   Res_2012_total->SetPointError(4, 1.35, 1.35, eta4_TotalUncDown, eta4_TotalUncUp);
   
-   Res_2012->SetMarkerStyle(20);
-   Res_2012->SetMarkerSize(1.4);
-   // Res_2012->SetFillColor(kYellow-3);
-   Res_2012->SetFillColor(kOrange+8);
-   Res_2012->SetFillStyle(3003);
-   //Res_2012->SetLineColor(kYellow-3);
-   Res_2012->SetLineColor(kOrange+8);
-   Res_2012->DrawClone("e3Psame");
+   Res_2012_total->SetMarkerStyle(20);
+   Res_2012_total->SetMarkerSize(1.4);
+   // Res_2012_total->SetFillColor(kYellow-3);
+   Res_2012_total->SetFillColor(kCyan-2);
+   Res_2012_total->SetFillStyle(1001);
+   //Res_2012_total->SetLineColor(kYellow-3);
+   Res_2012_total->SetLineColor(kCyan-2);
+   Res_2012_total->DrawClone("2Psame");
+
+   Res_2011->SetMarkerStyle(24);
+   Res_2011->SetMarkerSize(1.4);
+   Res_2011->SetFillColor(kGray+2);
+   Res_2011->SetFillStyle(3744);
+   Res_2011->SetLineColor(kGray+2);
+   Res_2011->DrawClone("2psame");
 
    // cmsPrel();
 
-   Res_2012->SetPointError(0, 0., 0., 0., 0.);
-   Res_2012->SetPointError(1, 0., 0., 0., 0.);
-   Res_2012->SetPointError(2, 0., 0., 0., 0.);
-   Res_2012->SetPointError(3, 0., 0., 0., 0.);
-   Res_2012->SetPointError(4, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(0, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(1, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(2, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(3, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(4, 0., 0., 0., 0.);
 
-   Res_2012->GetXaxis()->SetRangeUser(0., 5.);
-   Res_2012->Draw("psame");
+   Res_2012_total->GetXaxis()->SetRangeUser(0., 5.);
+   Res_2012_total->Draw("psame");
 
    Res_2011->SetPointError(0, 0., 0., 0., 0.);
    Res_2011->SetPointError(1, 0., 0., 0., 0.);
@@ -507,21 +671,25 @@ void CalcSysUncJER()
 
    Res_2011->Draw("psame");
 
-   TLegend *leg3 = new TLegend(0.54, 0.17, 0.74, 0.35);
-   leg3->SetBorderSize(0);
-   // leg3->SetBorderMode(0);
-   leg3->SetFillColor(0);
-   leg3->SetFillStyle(0);
-   leg3->SetTextFont(42);
-   leg3->SetTextSize(0.035);
+   label->Draw("same");
 
-   leg3->AddEntry(Res_2012," JER 2012 (total error)", "pfl");
-   leg3->AddEntry(Res_2011," JER 2011 (total error)", "pfl");
-  
+   TLegend* leg3 = util::LabelFactory::createLegendColWithOffset(1, 1.05, 0.07);
+   leg3->AddEntry(Res_2012_total,"JER 2012 Dijets (with tot. unc.)","PF");
+     
    leg3->Draw("same");
 
-   c3->Print("Results/JER_2012_comp2011.eps");
-   c3->Print("Results/JER_2012_comp2011.png");
+   TPaveText *label2 = util::LabelFactory::createPaveTextWithOffset(1,1.05,0.15);
+   label2->AddText("Anti-k_{T} (R=0.5) PF Jets");
+   label2->Draw("same");
+
+   TLegend* leg6 = util::LabelFactory::createLegendColWithOffset(1, 1.05, 0.21);
+   leg6->AddEntry(Res_2011,"JER 2011 Dijets (with tot. unc.)","PF");
+    
+   leg6->Draw("same");
+
+   c3->Print("Results/JER_2012_comp2011_final.eps");
+   c3->Print("Results/JER_2012_comp2011_final.png");
+   c3->Print("Results/JER_2012_comp2011_final.pdf");
 
 
    // ------------------------------------------------------------------ //
@@ -535,67 +703,63 @@ void CalcSysUncJER()
    Res_2012Photon_hist->SetBinContent(4, 1.199);
 
    TGraphAsymmErrors *Res_2012Photon = new TGraphAsymmErrors(Res_2012Photon_hist);
-   Res_2012Photon->SetPointError(0, 0., 0., 0.027, 0.028);
-   Res_2012Photon->SetPointError(1, 0., 0., 0.041, 0.041);
-   Res_2012Photon->SetPointError(2, 0., 0., 0.052, 0.052);
-   Res_2012Photon->SetPointError(3, 0., 0., 0.084, 0.084);
+   Res_2012Photon->SetPointError(0, 0.25, 0.25, 0.027, 0.028);
+   Res_2012Photon->SetPointError(1, 0.3, 0.3, 0.041, 0.041);
+   Res_2012Photon->SetPointError(2, 0.3, 0.3, 0.052, 0.052);
+   Res_2012Photon->SetPointError(3, 0.3, 0.3, 0.084, 0.084);
 
-   Res_2012->SetPointError(0, 0., 0., eta0_TotalUncDown, eta0_TotalUncUp);
-   Res_2012->SetPointError(1, 0., 0., eta1_TotalUncDown, eta1_TotalUncUp);
-   Res_2012->SetPointError(2, 0., 0., eta2_TotalUncDown, eta2_TotalUncUp);
-   Res_2012->SetPointError(3, 0., 0., eta3_TotalUncDown, eta3_TotalUncUp);
-   Res_2012->SetPointError(4, 0., 0., eta4_TotalUncDown, eta4_TotalUncUp);
+   Res_2012_total->SetPointError(0, 0.25, 0.25, eta0_TotalUncDown, eta0_TotalUncUp);
+   Res_2012_total->SetPointError(1, 0.3, 0.3, eta1_TotalUncDown, eta1_TotalUncUp);
+   Res_2012_total->SetPointError(2, 0.3, 0.3, eta2_TotalUncDown, eta2_TotalUncUp);
+   Res_2012_total->SetPointError(3, 0.3, 0.3, eta3_TotalUncDown, eta3_TotalUncUp);
+   Res_2012_total->SetPointError(4, 1.35, 1.35, eta4_TotalUncDown, eta4_TotalUncUp);
 
    TCanvas *c4 = new TCanvas();
    dummy->GetXaxis()->SetTitle("|#eta|");
    dummy->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
    dummy->GetXaxis()->SetRangeUser(0., 5.);
-   dummy->GetYaxis()->SetRangeUser(0.8, 1.5);
+   dummy->GetYaxis()->SetRangeUser(0.9, 1.7);
    dummy->Draw();
 
-   Res_2012->SetMarkerStyle(20);
-   Res_2012->SetMarkerSize(1.4);
-   // Res_2012->SetFillColor(kYellow-3);
-   Res_2012->SetFillColor(kGray);
-   Res_2012->SetFillStyle(3001);
-   //Res_2012->SetLineColor(kYellow-3);
-   Res_2012->SetLineColor(kGray);
-   Res_2012->DrawClone("e3Psame");
+   Res_2012_total->SetMarkerStyle(20);
+   Res_2012_total->SetMarkerSize(1.4);
+   // Res_2012_total->SetFillColor(kYellow-3);
+   Res_2012_total->SetFillColor(kCyan-2);
+   Res_2012_total->SetFillStyle(1001);
+   //Res_2012_total->SetLineColor(kYellow-3);
+   Res_2012_total->SetLineColor(kCyan-2);
+   Res_2012_total->DrawClone("2Psame");
 
-   Res_2012Photon->SetMarkerStyle(21);
-   Res_2012Photon->SetMarkerSize(1.3);
-   Res_2012Photon->SetFillColor(kOrange+8);
-   Res_2012Photon->SetFillStyle(3003);
-   Res_2012Photon->DrawClone("e3Psame");
+   Res_2012Photon->SetMarkerStyle(22);
+   Res_2012Photon->SetMarkerSize(1.4);
+   // Res_2012Photon->SetLineColor(kYellow-3);
+   // Res_2012Photon->SetFillColor(kYellow-3);
+   Res_2012Photon->SetLineColor(kPink-8);
+   Res_2012Photon->SetFillColor(kPink-8);
+   Res_2012Photon->SetFillStyle(3744);
+   Res_2012Photon->DrawClone("2Psame");
 
-   Res_2012->SetPointError(0, 0., 0., 0., 0.);
-   Res_2012->SetPointError(1, 0., 0., 0., 0.);
-   Res_2012->SetPointError(2, 0., 0., 0., 0.);
-   Res_2012->SetPointError(3, 0., 0., 0., 0.);
-   Res_2012->SetPointError(4, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(0, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(1, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(2, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(3, 0., 0., 0., 0.);
+   Res_2012_total->SetPointError(4, 0., 0., 0., 0.);
 
-   Res_2012->GetXaxis()->SetRangeUser(0., 5.);
-   Res_2012->Draw("psame");
+   Res_2012_total->GetXaxis()->SetRangeUser(0., 5.);
+   Res_2012_total->Draw("psame");
+   gPad->RedrawAxis();
 
-   TLegend *leg4 = new TLegend(0.17, 0.17, 0.54, 0.35);
-   leg4->SetBorderSize(0);
-   // leg4->SetBorderMode(0);
-   leg4->SetFillColor(0);
-   leg4->SetFillStyle(0);
-   leg4->SetTextFont(42);
-   leg4->SetTextSize(0.035);
+   label->Draw("same");
 
-   leg4->AddEntry(Res_2012," JER 2012 DiJets, PFchs Jets (total error)", "pfl");
-   leg4->AddEntry(Res_2012Photon," JER 2012 Photon + Jet, PFchs Jets (total error)", "pfl");
-
+   TLegend* leg4 = util::LabelFactory::createLegendColWithOffset(2, 1.05, 0.07);
+   leg4->AddEntry(Res_2012_total,"JER 2012 Dijets (with tot. unc.)","PF");
+   leg4->AddEntry(Res_2012Photon,"JER 2012 Photon + Jet (with tot. unc.)","PF");
+    
    leg4->Draw("same");
 
    // cmsPrel();
 
-   c4->Print("Results/JER_2012_compPhoton.eps");
-   c4->Print("Results/JER_2012_compPhoton.png");
-
-
-
-
+   c4->Print("Results/JER_2012_compPhoton_final.eps");
+   c4->Print("Results/JER_2012_compPhoton_final.png");
+   c4->Print("Results/JER_2012_compPhoton_final.pdf");
 }

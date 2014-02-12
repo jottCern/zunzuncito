@@ -1,4 +1,5 @@
-CXXFLAGS := -Wall -g -O2 $(shell root-config --cflags)
+CXXFLAGS := -Wall -g -O2 $(shell root-config --cflags) 
+#-I$(shell cd $$CMSSW_BASE; scram tool tag boost include)
 LDFLAGS := -g $(shell root-config --libs) -lJetMETObjects -LJetMETObjects/lib -Wl,-rpath,$(shell readlink -f JetMETObjects/lib)
 
 dummy := $(shell [ -d obj ] || mkdir obj)
