@@ -97,6 +97,17 @@ void processor::run(const dataset & d, TFile & outfile){
     connect(c, "GenJetEta", evt.GenJetEta);
 
     connect(c, "GenEvtScale", evt.GenEvtScale);
+
+    connect(c, "GenPartPt_algo", evt.GenPartPt_algo);
+    connect(c, "GenPartEta_algo", evt.GenPartEta_algo);
+    connect(c, "GenPartPhi_algo", evt.GenPartPhi_algo);
+    connect(c, "GenPartE_algo", evt.GenPartE_algo);
+    connect(c, "GenPartId_algo", evt.GenPartId_algo);
+    connect(c, "GenPartPt_phys", evt.GenPartPt_phys);
+    connect(c, "GenPartEta_phys", evt.GenPartEta_phys);
+    connect(c, "GenPartPhi_phys", evt.GenPartPhi_phys);
+    connect(c, "GenPartE_phys", evt.GenPartE_phys);
+    connect(c, "GenPartId_phys", evt.GenPartId_phys);
     
     size_t ifirst = d.nskip;
     size_t ilast = n;

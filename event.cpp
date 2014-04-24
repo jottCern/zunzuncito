@@ -59,5 +59,16 @@ void event::sort_jets_pt(int njets){
     apply_permutation(GenJetPt, indices);
     apply_permutation(GenJetEta, indices);
     apply_permutation(GenJetPhi, indices);
+
+    apply_permutation(GenPartPt_algo, indices);
+    apply_permutation(GenPartEta_algo, indices);
+    apply_permutation(GenPartPhi_algo, indices);
+    apply_permutation(GenPartE_algo, indices);
+    apply_permutation(GenPartId_algo, indices);
+    apply_permutation(GenPartPt_phys, indices);
+    apply_permutation(GenPartEta_phys, indices);
+    apply_permutation(GenPartPhi_phys, indices);
+    apply_permutation(GenPartE_phys, indices);
+    apply_permutation(GenPartId_phys, indices);
 }
 

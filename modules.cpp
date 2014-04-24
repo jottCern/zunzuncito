@@ -257,7 +257,7 @@ bool eventcuts::process(event & evt){
 
    // 2. (corrected) jets relevant for the analysis must fulfill loose JetID
    if(!(evt.JetIDLoose[0] && evt.JetIDLoose[1])) return false;
-   if(evt.NobjJet > 2 && !evt.JetIDLoose[2]) return false;
+   //  if(evt.NobjJet > 2 && !evt.JetIDLoose[2]) return false;
 
    // 3. select DiJet-like structure
    float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
@@ -320,6 +320,47 @@ bool alphareweighting::process(event & evt){
 alphareweighting::~alphareweighting(){}
 
 // ----------------------------------------------------------------- //
+void gluonsplittingreweighting::start_dataset(const dataset & d, TFile & outfile)
+{
+   splitting_fraction_before = new TH1F("gluon_splitting_fraction_before", "", 3, 0, 3);
+   splitting_fraction_after = new TH1F("gluon_splitting_fraction_after", "", 3, 0, 3);
+}
+
+bool gluonsplittingreweighting::process(event & evt){
+   if(!evt.is_mc) return true;
+
+   bool jet1_phys_gluon = false;
+   bool jet2_phys_gluon = false;
+   bool jet1_algo_heavy_quark = false;
+   bool jet2_algo_heavy_quark = false;
+
+   if( evt.GenPartId_phys[0] == 21 ) jet1_phys_gluon = true;
+   if( evt.GenPartId_phys[1] == 21 ) jet2_phys_gluon = true;
+   if( TMath::Abs(evt.GenPartId_algo[0]) == 4 || TMath::Abs(evt.GenPartId_algo[0]) == 5 ) jet1_algo_heavy_quark = true;
+   if( TMath::Abs(evt.GenPartId_algo[1]) == 4 || TMath::Abs(evt.GenPartId_algo[1]) == 5 ) jet2_algo_heavy_quark = true;
+   
+   // phys = gluon and algo = b or c --> gluon splitting to heavy quarks
+   if( (jet1_phys_gluon && jet1_algo_heavy_quark) || (jet2_phys_gluon && jet2_algo_heavy_quark)) {
+      splitting_fraction_before->Fill(0.5, evt.Weight);
+      evt.Weight = evt.Weight * 1.5;
+      splitting_fraction_after->Fill(0.5, evt.Weight);
+   }
+   // phys = gluon and algo != b or c --> gluon splitting to light quarks
+   else if( (jet1_phys_gluon && !jet1_algo_heavy_quark) || (jet2_phys_gluon && !jet2_algo_heavy_quark)) {
+      splitting_fraction_before->Fill(1.5, evt.Weight);
+      splitting_fraction_after->Fill(1.5, evt.Weight);
+   }
+   else{
+      splitting_fraction_before->Fill(2.5, evt.Weight);
+      splitting_fraction_after->Fill(2.5, evt.Weight);   
+   }
+  
+   return true;
+}
+
+gluonsplittingreweighting::~gluonsplittingreweighting(){}
+
+// ----------------------------------------------------------------- //
 smearmc::smearmc(int njetsmax_): njetsmax(njetsmax_){}
 
 bool smearmc::process(event & evt){
@@ -358,7 +399,9 @@ float smearmc::getsmearfactor(float eta)
    const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f}; // eta bins defining smearfactors
    const int neta = sizeof(eta_high) / sizeof(float);
    // const float smearval[] = {1.080, 1.103, 1.124, 1.222, 1.206};
-   const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1};
+   // const float smearval[] = {1.0769, 1.0998, 1.1185, 1.205, 1.191};
+   const float smearval[] = {1.0905, 1.1072, 1.1171, 1.2967, 1.1217};
+   //const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1};
    //const float smearval[] = {1, 1, 1, 1, 1};
 
    for(int ieta = 0; ieta < neta; ++ieta){
@@ -393,6 +436,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve40->Sumw2();
    Jet3Pt_HltDiPFJetAve40 = new TH1F(("Jet3Pt_HltDiPFJetAve40_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve40->Sumw2();
+   Jet1Eta_HltDiPFJetAve40 = new TH1F(("Jet1Eta_HltDiPFJetAve40_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve40->Sumw2();
+   Jet2Eta_HltDiPFJetAve40 = new TH1F(("Jet2Eta_HltDiPFJetAve40_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve40->Sumw2();
+   Jet3Eta_HltDiPFJetAve40 = new TH1F(("Jet3Eta_HltDiPFJetAve40_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve40->Sumw2();
    GenJet1Pt_HltDiPFJetAve40 = new TH1F(("GenJet1Pt_HltDiPFJetAve40_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve40->Sumw2();
    GenJet2Pt_HltDiPFJetAve40 = new TH1F(("GenJet2Pt_HltDiPFJetAve40_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -419,6 +468,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve80->Sumw2();
    Jet3Pt_HltDiPFJetAve80 = new TH1F(("Jet3Pt_HltDiPFJetAve80_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve80->Sumw2();
+   Jet1Eta_HltDiPFJetAve80 = new TH1F(("Jet1Eta_HltDiPFJetAve80_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve80->Sumw2();
+   Jet2Eta_HltDiPFJetAve80 = new TH1F(("Jet2Eta_HltDiPFJetAve80_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve80->Sumw2();
+   Jet3Eta_HltDiPFJetAve80 = new TH1F(("Jet3Eta_HltDiPFJetAve80_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve80->Sumw2();
    GenJet1Pt_HltDiPFJetAve80 = new TH1F(("GenJet1Pt_HltDiPFJetAve80_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve80->Sumw2();
    GenJet2Pt_HltDiPFJetAve80 = new TH1F(("GenJet2Pt_HltDiPFJetAve80_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -445,6 +500,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve140->Sumw2();
    Jet3Pt_HltDiPFJetAve140 = new TH1F(("Jet3Pt_HltDiPFJetAve140_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve140->Sumw2();
+   Jet1Eta_HltDiPFJetAve140 = new TH1F(("Jet1Eta_HltDiPFJetAve140_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve140->Sumw2();
+   Jet2Eta_HltDiPFJetAve140 = new TH1F(("Jet2Eta_HltDiPFJetAve140_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve140->Sumw2();
+   Jet3Eta_HltDiPFJetAve140 = new TH1F(("Jet3Eta_HltDiPFJetAve140_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve140->Sumw2();
    GenJet1Pt_HltDiPFJetAve140 = new TH1F(("GenJet1Pt_HltDiPFJetAve140_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve140->Sumw2();
    GenJet2Pt_HltDiPFJetAve140 = new TH1F(("GenJet2Pt_HltDiPFJetAve140_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -471,6 +532,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve200->Sumw2();
    Jet3Pt_HltDiPFJetAve200 = new TH1F(("Jet3Pt_HltDiPFJetAve200_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve200->Sumw2();
+   Jet1Eta_HltDiPFJetAve200 = new TH1F(("Jet1Eta_HltDiPFJetAve200_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve200->Sumw2();
+   Jet2Eta_HltDiPFJetAve200 = new TH1F(("Jet2Eta_HltDiPFJetAve200_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve200->Sumw2();
+   Jet3Eta_HltDiPFJetAve200 = new TH1F(("Jet3Eta_HltDiPFJetAve200_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve200->Sumw2();
    GenJet1Pt_HltDiPFJetAve200 = new TH1F(("GenJet1Pt_HltDiPFJetAve200_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve200->Sumw2();
    GenJet2Pt_HltDiPFJetAve200 = new TH1F(("GenJet2Pt_HltDiPFJetAve200_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -497,6 +564,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve260->Sumw2();
    Jet3Pt_HltDiPFJetAve260 = new TH1F(("Jet3Pt_HltDiPFJetAve260_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve260->Sumw2();
+   Jet1Eta_HltDiPFJetAve260 = new TH1F(("Jet1Eta_HltDiPFJetAve260_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve260->Sumw2();
+   Jet2Eta_HltDiPFJetAve260 = new TH1F(("Jet2Eta_HltDiPFJetAve260_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve260->Sumw2();
+   Jet3Eta_HltDiPFJetAve260 = new TH1F(("Jet3Eta_HltDiPFJetAve260_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve260->Sumw2();
    GenJet1Pt_HltDiPFJetAve260 = new TH1F(("GenJet1Pt_HltDiPFJetAve260_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve260->Sumw2();
    GenJet2Pt_HltDiPFJetAve260 = new TH1F(("GenJet2Pt_HltDiPFJetAve260_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -523,6 +596,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve320->Sumw2();
    Jet3Pt_HltDiPFJetAve320 = new TH1F(("Jet3Pt_HltDiPFJetAve320_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve320->Sumw2();
+   Jet1Eta_HltDiPFJetAve320 = new TH1F(("Jet1Eta_HltDiPFJetAve320_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve320->Sumw2();
+   Jet2Eta_HltDiPFJetAve320 = new TH1F(("Jet2Eta_HltDiPFJetAve320_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve320->Sumw2();
+   Jet3Eta_HltDiPFJetAve320 = new TH1F(("Jet3Eta_HltDiPFJetAve320_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve320->Sumw2();
    GenJet1Pt_HltDiPFJetAve320 = new TH1F(("GenJet1Pt_HltDiPFJetAve320_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve320->Sumw2();
    GenJet2Pt_HltDiPFJetAve320 = new TH1F(("GenJet2Pt_HltDiPFJetAve320_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -549,6 +628,12 @@ void controlplots::start_dataset(const dataset & d, TFile & outfile){
    Jet2Pt_HltDiPFJetAve400->Sumw2();
    Jet3Pt_HltDiPFJetAve400 = new TH1F(("Jet3Pt_HltDiPFJetAve400_" + suffix).c_str(), ("Jet3Pt_" + suffix).c_str(), 250, 0, 2500);
    Jet3Pt_HltDiPFJetAve400->Sumw2();
+   Jet1Eta_HltDiPFJetAve400 = new TH1F(("Jet1Eta_HltDiPFJetAve400_" + suffix).c_str(), ("Jet1Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet1Eta_HltDiPFJetAve400->Sumw2();
+   Jet2Eta_HltDiPFJetAve400 = new TH1F(("Jet2Eta_HltDiPFJetAve400_" + suffix).c_str(), ("Jet2Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet2Eta_HltDiPFJetAve400->Sumw2();
+   Jet3Eta_HltDiPFJetAve400 = new TH1F(("Jet3Eta_HltDiPFJetAve400_" + suffix).c_str(), ("Jet3Eta_" + suffix).c_str(), 100, -5., 5.);
+   Jet3Eta_HltDiPFJetAve400->Sumw2();
    GenJet1Pt_HltDiPFJetAve400 = new TH1F(("GenJet1Pt_HltDiPFJetAve400_" + suffix).c_str(), ("GenJet1Pt_" + suffix).c_str(), 250, 0, 2500);
    GenJet1Pt_HltDiPFJetAve400->Sumw2();
    GenJet2Pt_HltDiPFJetAve400 = new TH1F(("GenJet2Pt_HltDiPFJetAve400_" + suffix).c_str(), ("GenJet2Pt_" + suffix).c_str(), 250, 0, 2500);
@@ -576,12 +661,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve40->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve40->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve40->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve40->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve40->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve40->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve40->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve40->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve40->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve40->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve40->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve40->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -595,12 +683,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve80->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve80->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve80->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve80->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve80->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve80->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve80->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve80->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve80->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve80->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve80->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve80->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -614,12 +705,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve140->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve140->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve140->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve140->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve140->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve140->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve140->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve140->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve140->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve140->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve140->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve140->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -633,12 +727,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve200->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve200->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve200->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve200->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve200->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve200->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve200->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve200->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve200->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve200->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve200->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve200->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -652,12 +749,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve260->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve260->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve260->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve260->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve260->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve260->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve260->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve260->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve260->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve260->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve260->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve260->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -671,12 +771,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve320->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve320->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve320->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve320->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve320->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve320->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve320->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve320->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve320->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve320->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve320->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve320->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -690,12 +793,15 @@ bool controlplots::process(event & evt){
       NVtx_HltDiPFJetAve400->Fill(evt.VtxN, evt.Weight);
       Jet1Pt_HltDiPFJetAve400->Fill(evt.JetPt[0], evt.Weight);
       Jet2Pt_HltDiPFJetAve400->Fill(evt.JetPt[1], evt.Weight);
+      Jet1Eta_HltDiPFJetAve400->Fill(evt.JetEta[0], evt.Weight);
+      Jet2Eta_HltDiPFJetAve400->Fill(evt.JetEta[1], evt.Weight);
       GenJet1Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[0], evt.Weight);
       GenJet2Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[1], evt.Weight);
       PtAve_HltDiPFJetAve400->Fill(ptave, evt.Weight);
       GenPtAve_HltDiPFJetAve400->Fill(genptave, evt.Weight);
       if(evt.NobjJet > 2) {
          Jet3Pt_HltDiPFJetAve400->Fill(evt.JetPt[2], evt.Weight);
+         Jet3Eta_HltDiPFJetAve400->Fill(evt.JetEta[2], evt.Weight);
          GenJet3Pt_HltDiPFJetAve400->Fill(evt.GenJetPt[2], evt.Weight);
          Alpha_HltDiPFJetAve400->Fill(evt.JetPt[2]/ptave, evt.Weight);
          GenAlpha_HltDiPFJetAve400->Fill(evt.GenJetPt[2]/genptave, evt.Weight);
@@ -748,45 +854,40 @@ asymm_histos::asymm_histos(const boost::shared_ptr<pt_binning> & binning, const 
 }
 
 int asymm_histos::nbins_eta() const{
-   return 5;
+   return 6;
 }
 
 int asymm_histos::ibin_eta(const event & evt) const{
    if(evt.NobjJet < 2) return -1; 
    float eta0 = abs(evt.JetEta[0]);
    float eta1 = abs(evt.JetEta[1]);
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   //  const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
       // both the leading and the sub-leading jet must be within the same eta bin extending from eta_lo to eta_hi:
       float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
       if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;
-   }
-   return -1;
-}
 
-int asymm_histos::nbins_geneta() const{
-   return 5;
-}
-
-int asymm_histos::ibin_geneta(const event & evt) const{
-   if(evt.NobjJet < 2) return -1; 
-   float eta0 = abs(evt.GenJetEta[0]);
-   float eta1 = abs(evt.GenJetEta[1]);
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
-   const int neta = sizeof(eta_high) / sizeof(float);
-   for(int ieta = 0; ieta < neta; ++ieta){
-      // both the leading and the sub-leading jet must be within the same eta bin extending from eta_lo to eta_hi:
-      float eta_hi = eta_high[ieta];
+      // one jet has to be in the central eta bin, the other jet can be in any other
+      /* float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
-      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;
+      if( (eta0 < 0.5f and eta1 >= eta_lo and eta1 < eta_hi ) || 
+      (eta0 >= eta_lo and eta0 < eta_hi and eta1 < 0.5f )) return ieta;*/
+
+      // one jet has to be in the next-to-central eta bin, the other jet can be in any other
+      /* float eta_hi = eta_high[ieta];
+      float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
+      if( (eta0 >= 0.5f and eta0 < 1.1f and eta1 >= eta_lo and eta1 < eta_hi ) || 
+      (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 0.5f and eta1 < 1.1f )) return ieta;*/
    }
    return -1;
 }
    
 int asymm_histos::nbins_alpha() const{
    return 8;
+   //return 9;
 }
 
 int asymm_histos::ibin_alpha(const event & evt) const{
@@ -797,6 +898,7 @@ int asymm_histos::ibin_alpha(const event & evt) const{
       alpha = evt.JetPt[2] / (0.5f * (evt.JetPt[0] + evt.JetPt[1]));
    }
    const float alpha_min[] = {0.0f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
+   //const float alpha_min[] = {0.0f, 0.05f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
    const int nalpha = sizeof(alpha_min) / sizeof(float);
    // find the bin index in alpha for this event. The last bin extends to +infinity implicitly
    for(int ialpha=0; ialpha < nalpha; ++ialpha){
@@ -809,89 +911,12 @@ int asymm_histos::ibin_alpha(const event & evt) const{
    return -1;
 }
 
-int asymm_histos::nbins_genalpha() const{
-   return 8;
-}
-
-int asymm_histos::ibin_genalpha(const event & evt) const{
-   // leading reco jets should match leading gen jets
-   if( evt.JetGenJetDeltaR[0] > 0.25 || evt.JetGenJetDeltaR[1] > 0.25 ) {
-      //   cout << "leading gen jets do not match leading reco jets" << endl;
-      return -1;
-   }
-
-   // find 3rd gen-jet
-   float pt1gen = evt.GenJetPt[0];
-   float pt2gen = evt.GenJetPt[1];
-   if(evt.GenJetPt[0] < pt2gen) {
-      pt1gen = evt.GenJetPt[1];
-      pt2gen = evt.GenJetPt[0];
-   }
-   float pt3gen = 0.;
-   for (int i = 2; i < 50; i++) {
-      if(evt.GenJetPt[i] > pt2gen && !(evt.GenJetPt[i] == pt1gen)) {
-         return -1;
-      }
-      if(evt.GenJetPt[i] < pt2gen && evt.GenJetPt[i] > pt3gen) {
-         pt3gen = evt.GenJetPt[i];
-      }
-   }
-
-   if(pt3gen < 10.) return -1;
-   float genalpha = pt3gen / (0.5f * (evt.GenJetPt[0] + evt.GenJetPt[1]));   
- 
-   const float alpha_min[] = {0.0f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
-   const int nalpha = sizeof(alpha_min) / sizeof(float);
-   // find the bin index in alpha for this event. The last bin extends to +infinity implicitly
-   for(int ialpha=0; ialpha < nalpha; ++ialpha){
-      if(genalpha >= alpha_min[ialpha] and (ialpha + 1 == nalpha or genalpha < alpha_min[ialpha + 1])){
-      //    cout << "genalpha: " << genalpha << endl;
-//          cout << "ialpha: " << ialpha << endl;
-         return ialpha;
-      }
-   }
-   return -1;
-}
-
-int asymm_histos::nbins_genpt() const{
-   return 13;
-}
-
-int asymm_histos::ibin_genpt(const event & evt) const{
-   if(evt.NobjJet < 2) return -1;
-
-   // leading reco jets should match leading gen jets
-   if( evt.JetGenJetDeltaR[0] > 0.25 || evt.JetGenJetDeltaR[1] > 0.25 ) {
-      //   cout << "leading gen jets do not match leading reco jets" << endl;
-      return -1;
-   }
-
-   float genptave = 0.5 * (evt.GenJetPt[0] + evt.GenJetPt[1]);
-  
-   // define same pt bins for data and mc
-   if(genptave < 62) return -1;
-   if(genptave >= 62    && genptave < 107)  return 0;  
-   if(genptave >= 107   && genptave < 175)  return 1; 
-   if(genptave >= 175   && genptave < 205)  return 2; 
-   if(genptave >= 205   && genptave < 242)  return 3; 
-   if(genptave >= 242   && genptave < 270)  return 4; 
-   if(genptave >= 270   && genptave < 310)  return 5; 
-   if(genptave >= 310   && genptave < 335)  return 6; 
-   if(genptave >= 335   && genptave < 379)  return 7; 
-   if(genptave >= 379   && genptave < 410)  return 8;  
-   if(genptave >= 410   && genptave < 467)  return 9; 
-   if(genptave >= 467   && genptave < 600)  return 10;  
-   if(genptave >= 600   && genptave < 1000) return 11;  
-   if(genptave >= 1000  ) return 12;   
-
-   return -1;
-}
-
 void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
    // clear the histograms from previous dataset:
    histos_asymm.clear();
    histos_genasymm.clear();
    histos_alphaspectrum.clear();
+ 
    // create all histograms in the output file:
    outfile.cd();
    if(!dir.empty()){
@@ -901,7 +926,6 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
    // create the (gen)asymmetry histograms: histograms from 0 to 1 with 1000 bins:
    const int n_pt = ptbinning->nbins();
    const int n_alpha = nbins_alpha();
-   const int n_genalpha = nbins_genalpha();
    const int n_eta = nbins_eta();
    for(int ipt=0; ipt<n_pt; ++ipt){
       for(int ieta=0; ieta < n_eta; ++ieta){
@@ -917,15 +941,13 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
             TH1F *tmp = new TH1F(ss.str().c_str(), ss.str().c_str(), 1000, 0.0, 1.0);
             tmp->Sumw2();
             histos_asymm.push_back(tmp);
-         }
 
-         if(d.mc){
-            for(int igenalpha=0; igenalpha < n_genalpha; ++igenalpha){
-               stringstream ss;
-               ss << "GenPt" << ipt << "_geneta" << ieta << "_genalpha" << igenalpha;
-               TH1F *tmp = new TH1F(ss.str().c_str(), ss.str().c_str(), 1000, 0.0, 1.0);
-               tmp->Sumw2();
-               histos_genasymm.push_back(tmp);
+            if(d.mc){
+               stringstream ss2;
+               ss2 << "GenAsymm_Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
+               TH1F *tmp2 = new TH1F(ss2.str().c_str(), ss2.str().c_str(), 1000, 0.0, 1.0);
+               tmp2->Sumw2();
+               histos_genasymm.push_back(tmp2);
             }
          }
       }
@@ -945,21 +967,10 @@ bool asymm_histos::process(event & evt){
    int alphabin = ibin_alpha(evt);
    if(alphabin < 0) return false;
    assert(alphabin < nbins_alpha());
-
-   int genalphabin = ibin_genalpha(evt);
-   assert(genalphabin < nbins_genalpha());
-
-   int genptbin = ibin_genpt(evt);
-   assert(genptbin < nbins_genpt());
-
-   int genetabin = ibin_geneta(evt);
-   assert(genetabin < nbins_geneta());
     
    const int n_eta = nbins_eta();
    const int n_alpha = nbins_alpha();
-   const int n_genalpha = nbins_genalpha();
-   const int n_geneta = nbins_geneta();
-
+  
    // fill histos with alpha spectrum
    float alpha = 0.0;
    // if there is a third jet --> third jet pt should not be too small
@@ -977,27 +988,31 @@ bool asymm_histos::process(event & evt){
       int histo_index = ptbin * (n_eta * n_alpha) + etabin * n_alpha + (i+alphabin);
       assert(histo_index < int(histos_asymm.size()));
       histos_asymm[histo_index]->Fill(asymmetry, evt.Weight);
-   }
-
-   // fill genasymmetry histos inclusive in genalpha for PLI (only for MC)
-   if(evt.is_mc && !(genalphabin < 0 || genptbin < 0 || genetabin < 0) ) {
-      float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
-      // genasymmetry defined that way should always be positive
-      assert(genasymmetry >= 0.0f);
-      for(int i = 0; i < n_genalpha-genalphabin; i++) {
-         int histo_index = genptbin * (n_geneta * n_genalpha) + genetabin * n_genalpha + (i+genalphabin);
-         assert(histo_index < int(histos_genasymm.size()));
+      if(evt.is_mc) {
+         // -------- used for recopt, recoeta & recoalpha ------- //
+         float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
+         // genasymmetry defined that way should always be positive
+         assert(genasymmetry >= 0.0f);
          histos_genasymm[histo_index]->Fill(genasymmetry, evt.Weight);
       }
    }
 
    // fill asymmetry histos exclusive in alpha
-   //  int histo_index = ptbin * (n_eta * n_alpha) + etabin * n_alpha + alphabin;
-   //  assert(histo_index < int(histos.size()));
-   //  float asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
-   //  // asymmetry defined that way should always be positive, if the pt-sorting was right:
-   //  assert(asymmetry >= 0.0f);
-   //  histos[histo_index]->Fill(asymmetry, evt.Weight);
+//    int histo_index = ptbin * (n_eta * n_alpha) + etabin * n_alpha + alphabin;
+//    assert(histo_index < int(histos_asymm.size()));
+//    float asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
+//    // asymmetry defined that way should always be positive, if the pt-sorting was right:
+//    assert(asymmetry >= 0.0f);
+//    histos_asymm[histo_index]->Fill(asymmetry, evt.Weight);
+
+//    if(evt.is_mc) {
+//       // -------- used for recopt, recoeta & recoalpha ------- //
+//       float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
+//       // genasymmetry defined that way should always be positive
+//       assert(genasymmetry >= 0.0f);
+//       histos_genasymm[histo_index]->Fill(genasymmetry, evt.Weight);
+//    }
+
    return true;
 }
 
@@ -1006,11 +1021,12 @@ response_histos::response_histos(const std::string & dir_): dir(dir_){
 }
 
 int response_histos::nbins_etagen() const{
-   return 5;
+   return 6;
 }
 
 int response_histos::ibin_etagen(const float & eta) const{
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   //   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
       float eta_hi = eta_high[ieta];
@@ -1047,6 +1063,10 @@ int response_histos::ibin_ptgen(const float & ptgen) const{
 void response_histos::start_dataset(const dataset & d, TFile & outfile){
    // clear the histograms from previous dataset:
    histos_response.clear();
+   histos_response_uds.clear();
+   histos_response_c.clear();
+   histos_response_b.clear();
+   histos_response_gluon.clear();
    // create all histograms in the output file:
    outfile.cd();
    if(!dir.empty()){
@@ -1063,13 +1083,32 @@ void response_histos::start_dataset(const dataset & d, TFile & outfile){
          TH1F *tmp = new TH1F(ss.str().c_str(), ss.str().c_str(), 2000, 0.0, 2.0);
          tmp->Sumw2();
          histos_response.push_back(tmp);
+
+         stringstream ss_uds;
+         ss_uds << "Response_Pt" << ipt << "_eta" << ieta << "_uds";
+         TH1F *tmp_uds = new TH1F(ss_uds.str().c_str(), ss_uds.str().c_str(), 2000, 0.0, 2.0);
+         tmp_uds->Sumw2();
+         histos_response_uds.push_back(tmp_uds);
+
+         stringstream ss_c;
+         ss_c << "Response_Pt" << ipt << "_eta" << ieta << "_c";
+         TH1F *tmp_c = new TH1F(ss_c.str().c_str(), ss_c.str().c_str(), 2000, 0.0, 2.0);
+         tmp_c->Sumw2();
+         histos_response_c.push_back(tmp_c);
+
+         stringstream ss_b;
+         ss_b << "Response_Pt" << ipt << "_eta" << ieta << "_b";
+         TH1F *tmp_b = new TH1F(ss_b.str().c_str(), ss_b.str().c_str(), 2000, 0.0, 2.0);
+         tmp_b->Sumw2();
+         histos_response_b.push_back(tmp_b);
+
+         stringstream ss_gluon;
+         ss_gluon << "Response_Pt" << ipt << "_eta" << ieta << "_gluon";
+         TH1F *tmp_gluon = new TH1F(ss_gluon.str().c_str(), ss_gluon.str().c_str(), 2000, 0.0, 2.0);
+         tmp_gluon->Sumw2();
+         histos_response_gluon.push_back(tmp_gluon);
       }
    }
-   ResponseCorr_eta0 = new TH2F("ResponseCorr_eta0", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
-   ResponseCorr_eta1 = new TH2F("ResponseCorr_eta1", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
-   ResponseCorr_eta2 = new TH2F("ResponseCorr_eta2", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
-   ResponseCorr_eta3 = new TH2F("ResponseCorr_eta3", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
-   ResponseCorr_eta4 = new TH2F("ResponseCorr_eta4", "Response", 2000, 0.0, 2.0, 2000, 0.0, 2.0 );
 }
 
 bool response_histos::process(event & evt){
@@ -1097,16 +1136,27 @@ bool response_histos::process(event & evt){
    assert(histo_index2 < int(histos_response.size()));
    float res1 = evt.JetPt[0] / evt.GenJetPt[0];
    float res2 = evt.JetPt[1] / evt.GenJetPt[1];
+   // default matching distance = 0.25
    if((evt.JetGenJetDeltaR[0] < 0.25 && !(ptbin1 < 0) && !(etabin1 < 0)) &&
       (evt.JetGenJetDeltaR[1] < 0.25 && !(ptbin2 < 0) && !(etabin2 < 0))) {
       histos_response[histo_index1]->Fill(res1, evt.Weight);
       histos_response[histo_index2]->Fill(res2, evt.Weight);
 
-      if(etabin1 == 0) ResponseCorr_eta0->Fill(res1, res2, evt.Weight);
-      if(etabin1 == 1) ResponseCorr_eta1->Fill(res1, res2, evt.Weight);
-      if(etabin1 == 2) ResponseCorr_eta2->Fill(res1, res2, evt.Weight);
-      if(etabin1 == 3) ResponseCorr_eta3->Fill(res1, res2, evt.Weight);
-      if(etabin1 == 4) ResponseCorr_eta4->Fill(res1, res2, evt.Weight);
+      // algo b
+      if( TMath::Abs(evt.GenPartId_algo[0]) == 5 ) histos_response_b[histo_index1]->Fill(res1, evt.Weight);
+      if( TMath::Abs(evt.GenPartId_algo[1]) == 5 ) histos_response_b[histo_index2]->Fill(res2, evt.Weight);
+
+      // algo c
+      if( TMath::Abs(evt.GenPartId_algo[0]) == 4 ) histos_response_c[histo_index1]->Fill(res1, evt.Weight);
+      if( TMath::Abs(evt.GenPartId_algo[1]) == 4 ) histos_response_c[histo_index2]->Fill(res2, evt.Weight);
+
+      // algo u,d,s
+      if( (TMath::Abs(evt.GenPartId_algo[0]) == 1 || TMath::Abs(evt.GenPartId_algo[0]) == 2 || TMath::Abs(evt.GenPartId_algo[0]) == 3)) histos_response_uds[histo_index1]->Fill(res1, evt.Weight);
+      if( (TMath::Abs(evt.GenPartId_algo[1]) == 1 || TMath::Abs(evt.GenPartId_algo[1]) == 2 || TMath::Abs(evt.GenPartId_algo[2]) == 3)) histos_response_uds[histo_index2]->Fill(res2, evt.Weight);
+
+      // algo gluon
+      if( evt.GenPartId_algo[0] == 21 ) histos_response_gluon[histo_index1]->Fill(res1, evt.Weight);
+      if( evt.GenPartId_algo[1] == 21 ) histos_response_gluon[histo_index2]->Fill(res2, evt.Weight);
    }
    return true;
 }

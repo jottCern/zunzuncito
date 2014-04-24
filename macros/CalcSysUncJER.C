@@ -35,31 +35,40 @@ void CalcSysUncJER()
    // ------------------------------------------------------------------ //
    // get files with nominal value and variations
    // nominal values
-   TFile* file_nominal = new TFile("Extrapolation/JER_RatioVsEta_final.root", "READ");
+   TFile* file_nominal = new TFile("Extrapolation/JER_RatioVsEta_final_nominal_v2.root", "READ");
 
    // jec down
-   TFile* file_jecDOWN = new TFile("Extrapolation/JER_RatioVsEta_JECdown_final.root", "READ");
+   TFile* file_jecDOWN = new TFile("Extrapolation/JER_RatioVsEta_JECdown_final_v2.root", "READ");
 
    // jec up
-   TFile* file_jecUP = new TFile("Extrapolation/JER_RatioVsEta_JECup_final.root", "READ");
+   TFile* file_jecUP = new TFile("Extrapolation/JER_RatioVsEta_JECup_final_v2.root", "READ");
 
    // pli down
-   TFile* file_pliDOWN = new TFile("Extrapolation/JER_RatioVsEta_PLIdown_final.root", "READ");
+   TFile* file_pliDOWN = new TFile("Extrapolation/JER_RatioVsEta_PLIdown_final_v2.root", "READ");
 
    // pli up
-   TFile* file_pliUP = new TFile("Extrapolation/JER_RatioVsEta_PLIup_final.root", "READ");
+   TFile* file_pliUP = new TFile("Extrapolation/JER_RatioVsEta_PLIup_final_v2.root", "READ");
 
    // alpha spectrum reweighting
-   TFile* file_alpha = new TFile("Extrapolation/JER_RatioVsEta_ReweightAlphaSpectrum_final.root", "READ");
+   TFile* file_alpha = new TFile("Extrapolation/JER_RatioVsEta_ReweightAlphaSpectrum_final_v2.root", "READ");
 
    // PU reweighting
-   TFile* file_pu = new TFile("Extrapolation/JER_RatioVsEta_MBXS73500_final.root", "READ");
+   TFile* file_pu = new TFile("Extrapolation/JER_RatioVsEta_MBXS73500_final_v2.root", "READ");
 
    // extrapolation range (low alpha)
-   TFile* file_alpha_low = new TFile("Extrapolation/JER_RatioVsEta_FirstThreeAlphaPoints_final.root", "READ");
+   //  TFile* file_alpha_low = new TFile("Extrapolation/JER_RatioVsEta_FirstThreeAlphaPoints_final_v2.root", "READ");
 
    // extrapolation range (high alpha)
-   TFile* file_alpha_high = new TFile("Extrapolation/JER_RatioVsEta_LastThreeAlphaPoints_final.root", "READ");
+   //  TFile* file_alpha_high = new TFile("Extrapolation/JER_RatioVsEta_LastThreeAlphaPoints_final_v2.root", "READ");
+
+   // non-gaussian tails
+   TFile* file_tails = new TFile("Extrapolation/JER_RatioVsEta_95Truncation_final_v2.root", "READ");
+
+   // gluon splitting reweighting
+   TFile* file_gluon = new TFile("Extrapolation/JER_RatioVsEta_final_nominal_GluonSplittingReweighting_v2.root", "READ");
+
+   // additional alpha-bin 0.0-0.05
+   TFile* file_addalpha = new TFile("Extrapolation/JER_RatioVsEta_final_nominal_v2_NoMinPtCutForThirdJet_AddNewAlphaBin.root", "READ");
 
    // ------------------------------------------------------------------ //
    // define histos needed for uncertainties
@@ -70,8 +79,11 @@ void CalcSysUncJER()
    TH1F *RatioPLIUp = new TH1F();
    TH1F *RatioAlphaReweightUp = new TH1F();
    TH1F *RatioPUUp = new TH1F();
-   TH1F *RatioAlphaLow = new TH1F();
-   TH1F *RatioAlphaHigh = new TH1F();
+   //  TH1F *RatioAlphaLow = new TH1F();
+   //  TH1F *RatioAlphaHigh = new TH1F();
+   TH1F *RatioTailsDown = new TH1F();
+   TH1F *RatioGluonUp = new TH1F();
+   TH1F *RatioAddAlphaDown = new TH1F();
 
    // ------------------------------------------------------------------ //
    // get histos from files
@@ -96,11 +108,20 @@ void CalcSysUncJER()
    file_pu->cd();
    gDirectory->GetObject("RatioVsEta_with_pli;1", RatioPUUp);
 
-   file_alpha_low->cd();
-   gDirectory->GetObject("RatioVsEta_with_pli;1", RatioAlphaLow);
+   //  file_alpha_low->cd();
+   //  gDirectory->GetObject("RatioVsEta_with_pli;1", RatioAlphaLow);
 
-   file_alpha_high->cd();
-   gDirectory->GetObject("RatioVsEta_with_pli;1", RatioAlphaHigh);
+   //  file_alpha_high->cd();
+   //  gDirectory->GetObject("RatioVsEta_with_pli;1", RatioAlphaHigh);
+
+   file_tails->cd();
+   gDirectory->GetObject("RatioVsEta_with_pli;1", RatioTailsDown);
+
+   file_gluon->cd();
+   gDirectory->GetObject("RatioVsEta_with_pli;1", RatioGluonUp);
+
+   file_addalpha->cd();
+   gDirectory->GetObject("RatioVsEta_with_pli;1", RatioAddAlphaDown);
 
    // ------------------------------------------------------------------ //
    // calc symmetric PU errors
@@ -112,6 +133,10 @@ void CalcSysUncJER()
       double bin_content_nominal = RatioNominal->GetBinContent(i);
 
       double diff = bin_content_pu - bin_content_nominal;
+      if(i == 2) {
+         diff = 0.003;
+         bin_content_pu = bin_content_nominal + 0.003;
+      }
 
       //  cout << "PU i diff: " << i << "  "  << diff << endl;
 
@@ -261,11 +286,14 @@ void CalcSysUncJER()
 
 
    // calc symmetric AlphaRange errors
-   for (int i = 1; i < RatioAlphaLow->GetNbinsX()+1; i++) {
+   /*  for (int i = 1; i < RatioAlphaLow->GetNbinsX()+1; i++) {
       double bin_content_alpha_low = RatioAlphaLow->GetBinContent(i);
       double bin_content_alpha_high = RatioAlphaHigh->GetBinContent(i);
       double bin_content_nominal = RatioNominal->GetBinContent(i);
 
+      cout << "Alpha Range Low Eta: " << i << "  " << bin_content_alpha_low << " +- " << RatioAlphaLow->GetBinError(i) << endl;
+      cout << "Alpha Range High Eta: " << i << "  " << bin_content_alpha_high << " +- " << RatioAlphaHigh->GetBinError(i) << endl;
+ 
       double diff_low = bin_content_alpha_low - bin_content_nominal;
       double diff_high = bin_content_alpha_high - bin_content_nominal;
       double diff = 0;
@@ -304,8 +332,128 @@ void CalcSysUncJER()
    cout << "Eta2 : " << (RatioAlphaHigh->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
    cout << "Eta3 : " << (RatioAlphaHigh->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
    cout << "Eta4 : " << (RatioAlphaHigh->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;*/
+
+
+   // calc symmetric Tail errors
+   TH1F *RatioTailsUp = new TH1F(*RatioTailsDown);
+   RatioTailsUp->Reset();
+
+   for (int i = 1; i < RatioTailsUp->GetNbinsX()+1; i++) {
+      double bin_content_tails = RatioTailsDown->GetBinContent(i);
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
+
+      double diff = bin_content_tails - bin_content_nominal;
+      if(i == 2) {
+         diff = 0.003;
+         bin_content_tails = bin_content_nominal + 0.003;
+      }
+
+      //  cout << "PU i diff: " << i << "  "  << diff << endl;
+
+      if( diff > 0 ) {
+         RatioTailsUp->SetBinContent(i, bin_content_tails);
+         RatioTailsDown->SetBinContent(i, bin_content_nominal - diff);
+      }
+      else if ( diff < 0 ) {
+         RatioTailsDown->SetBinContent(i, bin_content_tails);
+         RatioTailsUp->SetBinContent(i, bin_content_nominal - diff);
+      }
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Tail Uncertainty : " << endl;
+   cout << "Eta0 : " << (RatioTailsUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioTailsUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioTailsUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioTailsUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioTailsUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
    cout << " // ------------------------------------------------------------------ // " << endl;
 
+   // calc symmetric GluonReweighting errors
+   TH1F *RatioGluonDown = new TH1F(*RatioGluonUp);
+   RatioGluonDown->Reset();
+
+   for (int i = 1; i < RatioGluonUp->GetNbinsX()+1; i++) {
+      double bin_content_alpha = RatioGluonUp->GetBinContent(i);
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
+
+      double diff = bin_content_alpha - bin_content_nominal;
+
+      //  cout << "Alpha reweight i diff: " << i << "  "  << diff << endl;
+
+      if( diff > 0 ) {
+         RatioGluonUp->SetBinContent(i, bin_content_alpha);
+         RatioGluonDown->SetBinContent(i, bin_content_nominal - diff);
+      }
+      else if ( diff < 0 ) {
+         RatioGluonDown->SetBinContent(i, bin_content_alpha);
+         RatioGluonUp->SetBinContent(i, bin_content_nominal - diff);
+      }
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Gluon Splitting Reweighting : " << endl;
+   cout << "Eta0 : " << (RatioGluonUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioGluonUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioGluonUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioGluonUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioGluonUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
+
+   // calc symmetric errors for additional alpha bin --> alpha range
+   TH1F *RatioAddAlphaUp = new TH1F(*RatioAddAlphaDown);
+   RatioAddAlphaUp->Reset();
+
+   for (int i = 1; i < RatioAddAlphaUp->GetNbinsX()+1; i++) {
+      double bin_content_alpha = RatioAddAlphaDown->GetBinContent(i);
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
+
+      double diff = bin_content_alpha - bin_content_nominal;
+
+      //  cout << "Alpha reweight i diff: " << i << "  "  << diff << endl;
+
+      if( diff > 0 ) {
+         RatioAddAlphaUp->SetBinContent(i, bin_content_alpha);
+         RatioAddAlphaDown->SetBinContent(i, bin_content_nominal - diff);
+      }
+      else if ( diff < 0 ) {
+         RatioAddAlphaDown->SetBinContent(i, bin_content_alpha);
+         RatioAddAlphaUp->SetBinContent(i, bin_content_nominal - diff);
+      }
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Alpha Range (Add low Alpha-Bin) : " << endl;
+   cout << "Eta0 : " << (RatioAddAlphaUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioAddAlphaUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioAddAlphaUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioAddAlphaUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioAddAlphaUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
+
+   // calc symmetric errors for possible pt-trend
+   TH1F *RatioPtTrendDown = new TH1F(*RatioAddAlphaDown);
+   TH1F *RatioPtTrendUp = new TH1F(*RatioAddAlphaDown);
+   RatioPtTrendDown->Reset();
+   RatioPtTrendUp->Reset();
+
+   for (int i = 1; i < RatioPtTrendDown->GetNbinsX()+1; i++) {
+      double bin_content_nominal = RatioNominal->GetBinContent(i);
+
+      RatioPtTrendUp->SetBinContent(i, bin_content_nominal + 0.02*bin_content_nominal);
+      RatioPtTrendDown->SetBinContent(i, bin_content_nominal - 0.02*bin_content_nominal);
+    
+   }
+
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Pt Trend : " << endl;
+   cout << "Eta0 : " << (RatioPtTrendUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << (RatioPtTrendUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << (RatioPtTrendUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << (RatioPtTrendUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << (RatioPtTrendUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
 
    // ------------------------------------------------------------------ //
    // remove hist errors for unc. variations
@@ -318,8 +466,10 @@ void CalcSysUncJER()
       RatioAlphaReweightUp->SetBinError(i, 0.0001);
       RatioPUDown->SetBinError(i, 0.0001);
       RatioPUUp->SetBinError(i, 0.0001);
-      RatioAlphaLow->SetBinError(i, 0.0001);
-      RatioAlphaHigh->SetBinError(i, 0.0001);
+      //    RatioAlphaLow->SetBinError(i, 0.0001);
+      //   RatioAlphaHigh->SetBinError(i, 0.0001);
+      RatioTailsUp->SetBinError(i, 0.0001);
+      RatioTailsDown->SetBinError(i, 0.0001);
    }
 
    // ------------------------------------------------------------------ //
@@ -330,50 +480,90 @@ void CalcSysUncJER()
                                             RatioPLIDown->GetBinContent(1),2) + 
                                         pow(RatioNominal->GetBinContent(1) - 
                                             RatioAlphaReweightDown->GetBinContent(1),2) +
+                                        //    pow(RatioNominal->GetBinContent(1) - 
+                                        //     RatioAlphaLow->GetBinContent(1),2) + 
                                         pow(RatioNominal->GetBinContent(1) - 
-                                            RatioAlphaLow->GetBinContent(1),2) + 
+                                            RatioPUDown->GetBinContent(1),2) +
                                         pow(RatioNominal->GetBinContent(1) - 
-                                            RatioPUDown->GetBinContent(1),2));
+                                            RatioGluonDown->GetBinContent(1),2) +
+                                        pow(RatioNominal->GetBinContent(1) - 
+                                            RatioAddAlphaDown->GetBinContent(1),2) +
+                                        pow(RatioNominal->GetBinContent(1) - 
+                                            RatioPtTrendDown->GetBinContent(1),2) +
+                                        pow(RatioNominal->GetBinContent(1) - 
+                                            RatioTailsDown->GetBinContent(1),2));
    double eta1_sysUncDown = TMath::Sqrt(pow(RatioNominal->GetBinContent(2) - 
                                             RatioJECDown->GetBinContent(2),2) + 
                                         pow(RatioNominal->GetBinContent(2) - 
                                             RatioPLIDown->GetBinContent(2),2) +
                                         pow(RatioNominal->GetBinContent(2) - 
                                             RatioAlphaReweightDown->GetBinContent(2),2) +
+                                        //   pow(RatioNominal->GetBinContent(2) - 
+                                        //       RatioAlphaLow->GetBinContent(2),2) + 
                                         pow(RatioNominal->GetBinContent(2) - 
-                                            RatioAlphaLow->GetBinContent(2),2) + 
+                                            RatioPUDown->GetBinContent(2),2) +
                                         pow(RatioNominal->GetBinContent(2) - 
-                                            RatioPUDown->GetBinContent(2),2));
+                                            RatioGluonDown->GetBinContent(2),2) +
+                                        pow(RatioNominal->GetBinContent(2) - 
+                                            RatioAddAlphaDown->GetBinContent(2),2) +
+                                        pow(RatioNominal->GetBinContent(2) - 
+                                            RatioPtTrendDown->GetBinContent(2),2) +
+                                        pow(RatioNominal->GetBinContent(2) - 
+                                            RatioTailsDown->GetBinContent(2),2));
    double eta2_sysUncDown = TMath::Sqrt(pow(RatioNominal->GetBinContent(3) - 
                                             RatioJECDown->GetBinContent(3),2) + 
                                         pow(RatioNominal->GetBinContent(3) - 
                                             RatioPLIDown->GetBinContent(3),2) + 
                                         pow(RatioNominal->GetBinContent(3) - 
                                             RatioAlphaReweightDown->GetBinContent(3),2) +
+                                        //   pow(RatioNominal->GetBinContent(3) - 
+                                        //       RatioAlphaLow->GetBinContent(3),2) + 
                                         pow(RatioNominal->GetBinContent(3) - 
-                                            RatioAlphaLow->GetBinContent(3),2) + 
+                                            RatioPUDown->GetBinContent(3),2) +
                                         pow(RatioNominal->GetBinContent(3) - 
-                                            RatioPUDown->GetBinContent(3),2));
+                                            RatioGluonDown->GetBinContent(3),2) +
+                                        pow(RatioNominal->GetBinContent(3) - 
+                                            RatioAddAlphaDown->GetBinContent(3),2) +
+                                        pow(RatioNominal->GetBinContent(3) - 
+                                            RatioPtTrendDown->GetBinContent(3),2) +
+                                        pow(RatioNominal->GetBinContent(3) - 
+                                            RatioTailsDown->GetBinContent(3),2));
    double eta3_sysUncDown = TMath::Sqrt(pow(RatioNominal->GetBinContent(4) - 
                                             RatioJECDown->GetBinContent(4),2) + 
                                         pow(RatioNominal->GetBinContent(4) - 
                                             RatioPLIDown->GetBinContent(4),2) + 
                                         pow(RatioNominal->GetBinContent(4) - 
                                             RatioAlphaReweightDown->GetBinContent(4),2) +
+                                        //   pow(RatioNominal->GetBinContent(4) - 
+                                        //        RatioAlphaLow->GetBinContent(4),2) + 
                                         pow(RatioNominal->GetBinContent(4) - 
-                                            RatioAlphaLow->GetBinContent(4),2) + 
+                                            RatioPUDown->GetBinContent(4),2) +
                                         pow(RatioNominal->GetBinContent(4) - 
-                                            RatioPUDown->GetBinContent(4),2));
+                                            RatioGluonDown->GetBinContent(4),2) +
+                                        pow(RatioNominal->GetBinContent(4) - 
+                                            RatioAddAlphaDown->GetBinContent(4),2) +
+                                        pow(RatioNominal->GetBinContent(4) - 
+                                            RatioPtTrendDown->GetBinContent(4),2) +
+                                        pow(RatioNominal->GetBinContent(4) - 
+                                            RatioTailsDown->GetBinContent(4),2));
    double eta4_sysUncDown = TMath::Sqrt(pow(RatioNominal->GetBinContent(5) - 
                                             RatioJECDown->GetBinContent(5),2) + 
                                         pow(RatioNominal->GetBinContent(5) - 
                                             RatioPLIDown->GetBinContent(5),2) + 
                                         pow(RatioNominal->GetBinContent(5) - 
                                             RatioAlphaReweightDown->GetBinContent(5),2) +
+                                        //     pow(RatioNominal->GetBinContent(5) - 
+                                        //   RatioAlphaLow->GetBinContent(5),2) + 
                                         pow(RatioNominal->GetBinContent(5) - 
-                                            RatioAlphaLow->GetBinContent(5),2) + 
+                                            RatioPUDown->GetBinContent(5),2) +
                                         pow(RatioNominal->GetBinContent(5) - 
-                                            RatioPUDown->GetBinContent(5),2));
+                                            RatioGluonDown->GetBinContent(5),2) +
+                                        pow(RatioNominal->GetBinContent(5) - 
+                                            RatioAddAlphaDown->GetBinContent(5),2) +
+                                        pow(RatioNominal->GetBinContent(5) - 
+                                            RatioPtTrendDown->GetBinContent(5),2) +
+                                        pow(RatioNominal->GetBinContent(5) - 
+                                            RatioTailsDown->GetBinContent(5),2));
 
    // ------------------------------------------------------------------ //
    // calc upper bounds
@@ -383,9 +573,17 @@ void CalcSysUncJER()
                                           RatioNominal->GetBinContent(1),2) + 
                                       pow(RatioAlphaReweightUp->GetBinContent(1) - 
                                           RatioNominal->GetBinContent(1),2) +
-                                      pow(RatioAlphaHigh->GetBinContent(1) - 
-                                          RatioNominal->GetBinContent(1),2) + 
+                                      //    pow(RatioAlphaHigh->GetBinContent(1) - 
+                                      //        RatioNominal->GetBinContent(1),2) + 
                                       pow(RatioPUUp->GetBinContent(1) - 
+                                          RatioNominal->GetBinContent(1),2) +
+                                      pow(RatioGluonUp->GetBinContent(1) - 
+                                          RatioNominal->GetBinContent(1),2) +
+                                      pow(RatioAddAlphaUp->GetBinContent(1) - 
+                                          RatioNominal->GetBinContent(1),2) +
+                                      pow(RatioPtTrendUp->GetBinContent(1) - 
+                                          RatioNominal->GetBinContent(1),2) +
+                                      pow(RatioTailsUp->GetBinContent(1) - 
                                           RatioNominal->GetBinContent(1),2));
    double eta1_sysUncUp = TMath::Sqrt(pow(RatioJECUp->GetBinContent(2) - 
                                           RatioNominal->GetBinContent(2),2) + 
@@ -393,19 +591,35 @@ void CalcSysUncJER()
                                           RatioNominal->GetBinContent(2),2) + 
                                       pow(RatioAlphaReweightUp->GetBinContent(2) - 
                                           RatioNominal->GetBinContent(2),2) +
-                                      pow(RatioAlphaHigh->GetBinContent(2) - 
-                                          RatioNominal->GetBinContent(2),2) + 
+                                      //    pow(RatioAlphaHigh->GetBinContent(2) - 
+                                      //        RatioNominal->GetBinContent(2),2) + 
                                       pow(RatioPUUp->GetBinContent(2) - 
-                                          RatioNominal->GetBinContent(2),2));                                
+                                          RatioNominal->GetBinContent(2),2) + 
+                                      pow(RatioGluonUp->GetBinContent(2) - 
+                                          RatioNominal->GetBinContent(2),2) +
+                                      pow(RatioAddAlphaUp->GetBinContent(2) - 
+                                          RatioNominal->GetBinContent(2),2) +
+                                      pow(RatioPtTrendUp->GetBinContent(2) - 
+                                          RatioNominal->GetBinContent(2),2) +
+                                      pow(RatioTailsUp->GetBinContent(2) - 
+                                          RatioNominal->GetBinContent(2),2)); 
    double eta2_sysUncUp = TMath::Sqrt(pow(RatioJECUp->GetBinContent(3) - 
                                           RatioNominal->GetBinContent(3),2) + 
                                       pow(RatioPLIUp->GetBinContent(3) - 
                                           RatioNominal->GetBinContent(3),2) + 
                                       pow(RatioAlphaReweightUp->GetBinContent(3) - 
                                           RatioNominal->GetBinContent(3),2) +
-                                      pow(RatioAlphaHigh->GetBinContent(3) - 
-                                          RatioNominal->GetBinContent(3),2) + 
+                                      //   pow(RatioAlphaHigh->GetBinContent(3) - 
+                                      //       RatioNominal->GetBinContent(3),2) + 
                                       pow(RatioPUUp->GetBinContent(3) - 
+                                          RatioNominal->GetBinContent(3),2) +
+                                      pow(RatioGluonUp->GetBinContent(3) - 
+                                          RatioNominal->GetBinContent(3),2) +
+                                      pow(RatioAddAlphaUp->GetBinContent(3) - 
+                                          RatioNominal->GetBinContent(3),2) +
+                                      pow(RatioPtTrendUp->GetBinContent(3) - 
+                                          RatioNominal->GetBinContent(3),2) +
+                                      pow(RatioTailsUp->GetBinContent(3) - 
                                           RatioNominal->GetBinContent(3),2));
    double eta3_sysUncUp = TMath::Sqrt(pow(RatioJECUp->GetBinContent(4) - 
                                           RatioNominal->GetBinContent(4),2) + 
@@ -413,9 +627,17 @@ void CalcSysUncJER()
                                           RatioNominal->GetBinContent(4),2) + 
                                       pow(RatioAlphaReweightUp->GetBinContent(4) - 
                                           RatioNominal->GetBinContent(4),2) +
-                                      pow(RatioAlphaHigh->GetBinContent(4) - 
-                                          RatioNominal->GetBinContent(4),2) + 
+                                      //   pow(RatioAlphaHigh->GetBinContent(4) - 
+                                      //       RatioNominal->GetBinContent(4),2) + 
                                       pow(RatioPUUp->GetBinContent(4) - 
+                                          RatioNominal->GetBinContent(4),2) +
+                                      pow(RatioGluonUp->GetBinContent(4) - 
+                                          RatioNominal->GetBinContent(4),2) +
+                                      pow(RatioAddAlphaUp->GetBinContent(4) - 
+                                          RatioNominal->GetBinContent(4),2) +
+                                      pow(RatioPtTrendUp->GetBinContent(4) - 
+                                          RatioNominal->GetBinContent(4),2) +
+                                      pow(RatioTailsUp->GetBinContent(4) - 
                                           RatioNominal->GetBinContent(4),2));
    double eta4_sysUncUp = TMath::Sqrt(pow(RatioJECUp->GetBinContent(5) - 
                                           RatioNominal->GetBinContent(5),2) + 
@@ -423,10 +645,30 @@ void CalcSysUncJER()
                                           RatioNominal->GetBinContent(5),2) + 
                                       pow(RatioAlphaReweightUp->GetBinContent(5) - 
                                           RatioNominal->GetBinContent(5),2) +
-                                      pow(RatioAlphaHigh->GetBinContent(5) - 
-                                          RatioNominal->GetBinContent(5),2) + 
+                                      //     pow(RatioAlphaHigh->GetBinContent(5) - 
+                                      //         RatioNominal->GetBinContent(5),2) + 
                                       pow(RatioPUUp->GetBinContent(5) - 
+                                          RatioNominal->GetBinContent(5),2) +
+                                      pow(RatioGluonUp->GetBinContent(5) - 
+                                          RatioNominal->GetBinContent(5),2) +
+                                      pow(RatioAddAlphaUp->GetBinContent(5) - 
+                                          RatioNominal->GetBinContent(5),2) +
+                                      pow(RatioPtTrendUp->GetBinContent(5) - 
+                                          RatioNominal->GetBinContent(5),2) +
+                                      pow(RatioTailsUp->GetBinContent(5) - 
                                           RatioNominal->GetBinContent(5),2));
+
+
+   // ------------------------------------------------------------------ //
+   // show values on screen total syst. uncertainty in %
+   cout << " // ------------------------------------------------------------------ // " << endl;
+   cout << "Total syst. uncertainty (in '%') : " << endl;
+   cout << "Eta0 : " << eta0_sysUncUp/RatioNominal->GetBinContent(1) << endl;
+   cout << "Eta1 : " << eta1_sysUncUp/RatioNominal->GetBinContent(2) << endl;
+   cout << "Eta2 : " << eta2_sysUncUp/RatioNominal->GetBinContent(3) << endl;
+   cout << "Eta3 : " << eta3_sysUncUp/RatioNominal->GetBinContent(4) << endl;
+   cout << "Eta4 : " << eta4_sysUncUp/RatioNominal->GetBinContent(5) << endl;
+   cout << " // ------------------------------------------------------------------ // " << endl;
 
    // ------------------------------------------------------------------ //
    // show values on screen with stat. uncertainty
@@ -528,16 +770,26 @@ void CalcSysUncJER()
    RatioPUUp->SetMarkerStyle(23);
    RatioPUUp->SetMarkerColor(kCyan+1);
    RatioPUUp->Draw("same");
-   RatioAlphaLow->GetXaxis()->SetRangeUser(0., 5.);
-   RatioAlphaLow->SetMarkerSize(1.);
-   RatioAlphaLow->SetMarkerStyle(24);
-   RatioAlphaLow->SetMarkerColor(kMagenta+1);
-   RatioAlphaLow->Draw("same");
-   RatioAlphaHigh->GetXaxis()->SetRangeUser(0., 5.);
-   RatioAlphaHigh->SetMarkerSize(1.);
-   RatioAlphaHigh->SetMarkerStyle(24);
-   RatioAlphaHigh->SetMarkerColor(kMagenta+1);
-   RatioAlphaHigh->Draw("same");
+   //  RatioAlphaLow->GetXaxis()->SetRangeUser(0., 5.);
+   //RatioAlphaLow->SetMarkerSize(1.);
+   //RatioAlphaLow->SetMarkerStyle(24);
+   //RatioAlphaLow->SetMarkerColor(kMagenta+1);
+   //RatioAlphaLow->Draw("same");
+   //RatioAlphaHigh->GetXaxis()->SetRangeUser(0., 5.);
+   //RatioAlphaHigh->SetMarkerSize(1.);
+   //RatioAlphaHigh->SetMarkerStyle(24);
+   //RatioAlphaHigh->SetMarkerColor(kMagenta+1);
+   //RatioAlphaHigh->Draw("same");
+   RatioTailsDown->GetXaxis()->SetRangeUser(0., 5.);
+   RatioTailsDown->SetMarkerSize(1.);
+   RatioTailsDown->SetMarkerStyle(25);
+   RatioTailsDown->SetMarkerColor(kPink+1);
+   RatioTailsDown->Draw("same");
+   RatioTailsUp->GetXaxis()->SetRangeUser(0., 5.);
+   RatioTailsUp->SetMarkerSize(1.);
+   RatioTailsUp->SetMarkerStyle(25);
+   RatioTailsUp->SetMarkerColor(kPink+1);
+   RatioTailsUp->Draw("same");
    RatioNominal->Draw("same");
 
    TLegend *leg = new TLegend(0.17, 0.17, 0.54, 0.4);
@@ -552,13 +804,14 @@ void CalcSysUncJER()
    leg->AddEntry(RatioJECDown,"JEC", "P");
    leg->AddEntry(RatioPLIDown,"PLI", "P");
    leg->AddEntry(RatioAlphaReweightDown,"Alpha Spectrum", "P");
-   leg->AddEntry(RatioAlphaLow,"Alpha Range", "P");
+   //  leg->AddEntry(RatioAlphaLow,"Alpha Range", "P");
    leg->AddEntry(RatioPUUp, "PU reweighting", "P");
+   leg->AddEntry(RatioTailsUp, "Non-Gaussian tails", "P");
   
    leg->Draw("same");
 
-   c->Print("Results/JER_2012_uncertainties_final.eps");
-   c->Print("Results/JER_2012_uncertainties_final.png");
+   c->Print("Results/JER_2012_uncertainties_final_v2.eps");
+   c->Print("Results/JER_2012_uncertainties_final_v2.png");
 
 
    // ------------------------------------------------------------------ //
@@ -602,9 +855,9 @@ void CalcSysUncJER()
    Res_2012_total->Draw("psame");
    gPad->RedrawAxis();
 
-   c2->Print("Results/JER_2012_final.eps");
-   c2->Print("Results/JER_2012_final.png");
-   c2->Print("Results/JER_2012_final.pdf");
+   c2->Print("Results/JER_2012_final_v2.eps");
+   c2->Print("Results/JER_2012_final_v2.png");
+   c2->Print("Results/JER_2012_final_v2.pdf");
 
    // ------------------------------------------------------------------ //
    // plot nominal values with total unc. + 2011 comparison
@@ -687,9 +940,9 @@ void CalcSysUncJER()
     
    leg6->Draw("same");
 
-   c3->Print("Results/JER_2012_comp2011_final.eps");
-   c3->Print("Results/JER_2012_comp2011_final.png");
-   c3->Print("Results/JER_2012_comp2011_final.pdf");
+   c3->Print("Results/JER_2012_comp2011_final_v2.eps");
+   c3->Print("Results/JER_2012_comp2011_final_v2.png");
+   c3->Print("Results/JER_2012_comp2011_final_v2.pdf");
 
 
    // ------------------------------------------------------------------ //
@@ -759,7 +1012,7 @@ void CalcSysUncJER()
 
    // cmsPrel();
 
-   c4->Print("Results/JER_2012_compPhoton_final.eps");
-   c4->Print("Results/JER_2012_compPhoton_final.png");
-   c4->Print("Results/JER_2012_compPhoton_final.pdf");
+   c4->Print("Results/JER_2012_compPhoton_final_v2.eps");
+   c4->Print("Results/JER_2012_compPhoton_final_v2.png");
+   c4->Print("Results/JER_2012_compPhoton_final_v2.pdf");
 }

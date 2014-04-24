@@ -63,7 +63,7 @@ struct fit_data{
       TMatrixD y_cov_new;
       int j = 0;
     
-      for(int i = 0; i < y_val.size(); i++) {
+      for(unsigned int i = 0; i < y_val.size(); i++) {
          //         std::cout << "i: " << i << "   j: " << j << std::endl;
          if( y_val.at(i) == 0) {
             x_val.erase(x_val.begin()+i);
@@ -82,8 +82,8 @@ struct fit_data{
       //  std::cout<< "Remaining Points: " << x_val.size() << std::endl;
 
       y_cov_new.ResizeTo(x_val.size(),x_val.size());
-      for( int i=0; i < x_val.size(); i++) {
-         for(int k= 0; k < x_val.size(); k++) {
+      for(unsigned int i=0; i < x_val.size(); i++) {
+         for(unsigned int k= 0; k < x_val.size(); k++) {
             y_cov_new(i,k) = y_cov(i+RemovedPoints.size(),k+RemovedPoints.size());
          }
       }
@@ -125,10 +125,10 @@ void chi2_linear(Int_t& npar, Double_t* grad, Double_t& fval, Double_t* p, Int_t
 }
 
 // --------------------------------- //
-void make_lin_fit(double & slope, double & d_slope, double & offset, double & d_offset){
+double make_lin_fit(double & slope, double & d_slope, double & offset, double & d_offset){
     TMinuit min;
     min.SetPrintLevel(-1);
-    //min.SetPrintLevel(0);
+    // min.SetPrintLevel(0);
     int err = min.DefineParameter(0, "slope", slope, d_slope, 0.05, 1.0);
     assert(err==0);
     err = min.DefineParameter(1, "offset", offset, d_offset, 0.001, 0.2);
@@ -137,6 +137,12 @@ void make_lin_fit(double & slope, double & d_slope, double & offset, double & d_
     min.mnmigr();
     min.GetParameter(0, slope, d_slope);
     min.GetParameter(1, offset, d_offset);
+
+    int n = 2;
+    double fval;
+    double pars[2] = {slope, offset};
+    chi2_linear(n, 0, fval, pars, 0);
+    return fval;
 }
 
 // --------------------------------- //
@@ -151,12 +157,8 @@ float GetAsymmWidth(TH1F* htemp, double * xq_IQW, double * yq_IQW)
       htemp->ComputeIntegral();
       htemp->GetQuantiles(nq,yq_IQW,xq_IQW);
       Int_t IQW_high_bin_i = htemp->FindBin(yq_IQW[1]);
-    //   cout << "x value: " << htemp->GetBinCenter(IQW_high_bin_i) << endl;
-//       cout << "Bin where to cut: " << IQW_high_bin_i << endl;
-//       cout << "Bins before truncation: " << htemp->GetNbinsX() << endl;
-//       cout << "Integral before truncation: " << htemp->Integral() << endl;
-//       cout << "Integral after truncation: " << htemp->Integral(1, IQW_high_bin_i) << endl;
-      cout << "Truncated Integral in %: " << htemp->Integral(1, IQW_high_bin_i)/htemp->Integral() << endl;
+ 
+      // cout << "Truncated Integral in %: " << htemp->Integral(1, IQW_high_bin_i)/htemp->Integral() << endl;
 
       for(int i=1; i <= IQW_high_bin_i; i++) {
          width += htemp->GetBinContent(i)* std::pow(htemp->GetBinCenter(i), 2);
@@ -169,13 +171,11 @@ float GetAsymmWidth(TH1F* htemp, double * xq_IQW, double * yq_IQW)
 }
 
 // --------------------------------- //
-float GetTruthRes(TH1F* htemp, double * xq_IQW, double * yq_IQW) 
+float GetTruthRes(TH1F* htemp, double trunc_val) 
 {
-   const int nq = 2;
-
    float width = 0.;
 
-   /*  float integral_tot = htemp->Integral();
+   float integral_tot = htemp->Integral();
    
    if( htemp->GetEntries() > 100 ) {
 
@@ -188,22 +188,16 @@ float GetTruthRes(TH1F* htemp, double * xq_IQW, double * yq_IQW)
       for(int i = 1; i <= htemp->GetNbinsX(); i++) {
          integral += htemp->GetBinContent(MeanBin+i);
          integral += htemp->GetBinContent(MeanBin-i);
-         if(integral/integral_tot > 0.95) {
+         if(integral/integral_tot > trunc_val) {
             IQW_bin_i_low = MeanBin-i;
             IQW_bin_i_high = MeanBin+i;
             break;
          }
       }
 
-      cout << "Truth Resolution:" << endl;
-      cout << "Mean: " << htemp->GetMean() << endl;
-      cout << "Integral before truncation: " << integral_tot << endl;
-      cout << "Integral after truncation: " << integral << endl;
-      cout << "Truncated Integral in %: " << integral/integral_tot << endl;
-
       htemp->GetXaxis()->SetRange(IQW_bin_i_low, IQW_bin_i_high); 
       width = htemp->GetRMS();
-      }*/
+   }
 
    return width;  
 }
@@ -215,27 +209,79 @@ void Extrapolation()
    gROOT->ForceStyle();
 
    // input files
-   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_final.root", "READ");
-   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_final.root", "READ");
-   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_final.root", "READ");
-   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_SmearedWithMeasuredValues.root", "READ");
-   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ReweightAlphaSpectrum.root", "READ");
-   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_MBXS73500.root", "READ");
-   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_JECup.root", "READ");
-   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_JECdown.root", "READ");
+   // --------------------- //
+   // TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_final.root", "READ");
+   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_nominal_v3.root", "READ");
+   // TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_final.root", "READ");
+   // TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   // TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_ForwardExtensionNextToCentral_final_v1.root", "READ");
+  
+   // --------------------- //
+   // TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_final.root", "READ");
+   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_nominal_v3.root", "READ");
+   // TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_final.root", "READ");
+   // TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   // TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_ForwardExtensionNextToCentral_final_v1.root", "READ");
+
+   // --------------------- //
+   // TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_final.root", "READ");
+   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_nominal_v3.root", "READ");
+   // TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_final.root", "READ");
+   // TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   // TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_ForwardExtensionNextToCentral_final_v1.root", "READ");
+
+   // --------------------- //
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_GluonSplittingReweighting_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_SmearedWithMeasuredValues_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ReweightAlphaSpectrum_v2.root", "READ");
+   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_MBXS73500_v2.root", "READ");
+   //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_JECup_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_JECdown_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v2.root", "READ");
+
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v3.root", "READ");
+
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_v1.root", "READ");
+  
+   //  TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_SmearedWithMeasuredValues_v2.root", "READ");
+   //  TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtension_v2.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v1.root", "READ");
+   // --------------------- //
  
-   //  TString suffix = "_test";
-   //TString suffix = "_final";
-   TString suffix = "_MCSmearedWithMeasuredValues_final";
-   //TString suffix = "_ReweightAlphaSpectrum_final";
-   //TString suffix = "_MBXS73500_final";
-   //TString suffix = "_JECup_final";
-   //TString suffix = "_JECdown_final";
-   //TString suffix = "_PLIup_final";
-   //TString suffix = "_PLIdown_final";
-   //TString suffix = "_FirstThreeAlphaPoints_final";
-   //TString suffix = "_LastThreeAlphaPoints_final";
+   // --------------------- //
+   // TString suffix = "_test";
+
+   // TString suffix = "_ForwardExtension_v2";
+   // TString suffix = "_ForwardExtensionNextToCentral_v1";
+  
+   // TString suffix = "_final_nominal_v2";
+   // TString suffix = "_final_nominal_GluonSplittingReweighting_v2";
+   // TString suffix = "_final_nominal_v2_NoMinPtCutForThirdJet_AddNewAlphaBin";
+   // TString suffix = "_final_nominal_IgnoreCorrelation_v2";
+   // TString suffix = "_MCSmearedWithMeasuredValues_final_v2";
+   // TString suffix = "_ReweightAlphaSpectrum_final_v2";
+   // TString suffix = "_MBXS73500_final_v2";
+   // TString suffix = "_JECup_final_v2";
+   // TString suffix = "_JECdown_final_v2";
+   // TString suffix = "_PLIup_final_v2";
+   // TString suffix = "_PLIdown_final_v2";
+   // TString suffix = "_NoTruncation_final_v2";
+   // TString suffix = "_97Truncation_final_v2";
+   // TString suffix = "_95Truncation_final_v2";
+
+   TString suffix = "_final_nominal_v3";
+
+   // TString suffix = "_herwigpp_final_v2";
+   // TString suffix = "_herwigpp_final_SmearedWithMeasuredValues_v2";
+   // TString suffix = "_herwigpp_ForwardExtension_v2";
+   // TString suffix = "_herwigpp_ForwardExtensionNextToCentral_v1";
+   // --------------------- //
+
+   bool MakeAllControlPlots = false;
+   bool useTruth = false;
     
    // define scale factor for PLI correction --> can be used for systematic variation
    double PLI_scale = 1.0; // 0.75, 1.0 or 1.25
@@ -253,6 +299,7 @@ void Extrapolation()
    tmp_res->Sumw2();
 
    std::vector<float> alpha;
+   //  alpha.push_back(0.05); 
    alpha.push_back(0.1); 
    alpha.push_back(0.125); 
    alpha.push_back(0.15); 
@@ -262,21 +309,36 @@ void Extrapolation()
    alpha.push_back(0.25); 
       
    float pt_bins[14] = {62, 107, 175, 205, 242, 270, 310, 335, 379, 410, 467, 600, 1000, 2000};
-   float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.0};
+   //  float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.0};
+   float eta_bins[7] = {0, 0.5, 1.1, 1.7, 2.3, 3.2, 5.0};
    TH1F *extrapolated_data = new TH1F("extrapolated_data", "extrapolated_data", 13, pt_bins);
+   TH1F *extrapolated_data_slope = new TH1F("extrapolated_data_slope", "extrapolated_data", 13, pt_bins);
    TH1F *extrapolated_mc = new TH1F("extrapolated_mc", "extrapolated_mc", 13, pt_bins);
+   TH1F *extrapolated_mc_slope = new TH1F("extrapolated_mc_slope", "extrapolated_mc", 13, pt_bins);
    TH1F *extrapolated_gen = new TH1F("extrapolated_gen", "extrapolated_gen", 13, pt_bins);
+   TH1F *extrapolated_gen_slope = new TH1F("extrapolated_gen_slope", "extrapolated_gen", 13, pt_bins);
    TH1F *extrapolated_data_with_pli = new TH1F("extrapolated_data_with_pli", "extrapolated_data", 13, pt_bins);
    TH1F *extrapolated_mc_with_pli = new TH1F("extrapolated_mc_with_pli", "extrapolated_mc", 13, pt_bins);
    TH1F *truth_resolution = new TH1F("truth_resolution", "truth_resolution", 13, pt_bins);
-   TH1F* RatioVsEta = new TH1F("RatioVsEta", "", 5, eta_bins);
-   TH1F* RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 5, eta_bins);
+   TH1F *chi2_data = new TH1F("chi2_data", "chi2/ndf", 13, pt_bins);
+   TH1F *chi2_mc = new TH1F("chi2_mc", "chi2/ndf", 13, pt_bins);
+   TH1F *chi2_gen = new TH1F("chi2_gen", "chi2/ndf", 13, pt_bins);
+   //  TH1F *RatioVsEta = new TH1F("RatioVsEta", "", 5, eta_bins);
+   //TH1F *RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 5, eta_bins);
+   TH1F *RatioVsEta = new TH1F("RatioVsEta", "", 6, eta_bins);
+   TH1F *RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 6, eta_bins);
    extrapolated_data->Sumw2();
+   extrapolated_data_slope->Sumw2();
    extrapolated_mc->Sumw2();
+   extrapolated_mc_slope->Sumw2();
    extrapolated_gen->Sumw2();
+   extrapolated_gen_slope->Sumw2();
    extrapolated_data_with_pli->Sumw2();
    extrapolated_mc_with_pli->Sumw2();
    truth_resolution->Sumw2();
+   chi2_data->Sumw2();
+   chi2_mc->Sumw2();
+   chi2_gen->Sumw2();
    RatioVsEta->Sumw2();
    RatioVsEta_with_pli->Sumw2();
 
@@ -286,26 +348,32 @@ void Extrapolation()
    xq_IQW[1] = 0.985;
    
    //// get asymmetry histos
-   for(int ieta=0; ieta < 5; ++ieta){
+   // for(int ieta=0; ieta < 5; ++ieta){
+   for(int ieta=0; ieta < 6; ++ieta){
       //  cout << "eta Bin: " << ieta << endl;
 
       extrapolated_data->Reset();
+      extrapolated_data_slope->Reset();
       extrapolated_mc->Reset();
+      extrapolated_mc_slope->Reset();
       extrapolated_gen->Reset();
+      extrapolated_gen_slope->Reset();
       extrapolated_data_with_pli->Reset();
       extrapolated_mc_with_pli->Reset();
       truth_resolution->Reset();
+      chi2_data->Reset();
+      chi2_mc->Reset();
+      chi2_gen->Reset();
 
       for(int ipt=0; ipt < 13; ++ipt){     
          //  cout << "pt Bin: " << ipt << endl;
          std::vector<double> x,x_e,MCy,MCy_e,Datay,Datay_e,Geny,Geny_e;
 
          for(int ialpha=0; ialpha < 7; ++ialpha){        // nominal
-         // for(int ialpha=0; ialpha < 3; ++ialpha){        // first three alpha points
-         // for(int ialpha=4; ialpha < 7; ++ialpha){        // last three alpha points
+         // for(int ialpha=0; ialpha < 8; ++ialpha){        // nominal + 1 alpha-bin
             //  cout << "alpha Bin: " << ialpha << endl;
             TString hname = Form("Pt%i_eta%i_alpha%i", ipt, ieta, ialpha);
-            TString hname_gen = Form("GenPt%i_geneta%i_genalpha%i", ipt, ieta, ialpha);
+            TString hname_gen = Form("GenAsymm_Pt%i_eta%i_alpha%i", ipt, ieta, ialpha);
 
             //  cout << "hname: " << hname << endl;
 
@@ -340,111 +408,34 @@ void Extrapolation()
             x_e.push_back(0.);
 
             cout << "Pt: " << ipt << " eta: " << ieta << " alpha: " << ialpha << endl;
-
-            double data_res = 0; 
-            double data_res_err = 0; 
-            double data_mean = 0;
-            double mc_res = 0; 
-            double mc_res_err = 0; 
-            double mc_mean = 0;
-            double gen_res = 0; 
-            double gen_res_err = 0; 
-            double gen_mean = 0;
-            TF1 *f_data = (TF1*)gROOT->GetFunction("gaus")->Clone();
-            f_data->SetParameter(1, 0);
-            f_data->SetParLimits(1, 0, 0.005);
-            TF1 *f_mc = (TF1*)gROOT->GetFunction("gaus")->Clone();
-            f_mc->SetParameter(1, 0);
-            f_mc->SetParLimits(1, 0, 0.005);
-            TF1 *f_gen = (TF1*)gROOT->GetFunction("gaus")->Clone();
-            f_gen->SetParameter(1, 0);
-            f_gen->SetParLimits(1, 0, 0.005);
-
-            //  tmp_data1->Rebin(10);
-            //  tmp_mc->Rebin(10);
+              
             tmp_mc->Scale(tmp_data1->Integral()/tmp_mc->Integral());
-            //  tmp_gen->Rebin(10);
-
+         
             // get asymmetry width defined as truncated RMS
             double mc_width = GetAsymmWidth(tmp_mc, xq_IQW, yq_IQW);
             double mc_width_err =  mc_width/(TMath::Sqrt(2*tmp_mc->GetEffectiveEntries()));
             double data_width = GetAsymmWidth(tmp_data1, xq_IQW, yq_IQW);
             double data_width_err = data_width/(TMath::Sqrt(2*tmp_data1->GetEffectiveEntries()));
             double gen_width = GetAsymmWidth(tmp_gen, xq_IQW, yq_IQW);
-            double gen_width_err = gen_width/(TMath::Sqrt(2*tmp_gen->GetEffectiveEntries()));
+            double gen_width_err = gen_width/(TMath::Sqrt(2*tmp_gen->GetEffectiveEntries()));       
 
-            // get asymmetry width as gauss fit
-         //    if( tmp_data1->GetEntries() > 100 ) {
-//                // data_mean = 0; 
-//                data_res = data_width;
-//                tmp_data1->Fit(f_data,"QN","", - 3 * data_res, + 3 * data_res);
-               
-//                f_data->SetLineColor(kGreen);
-//                f_data->SetLineWidth(3);
-//                //  data_mean = f_data->GetParameter(1);
-//                data_res = f_data->GetParameter(2);
-               
-//                if(tmp_data1->Fit(f_data,"Q","same",  - 2. * data_res,  + 2. * data_res) == 0) {
-//                   data_res = f_data->GetParameter(2);
-//                   data_res_err = f_data->GetParError(2);
-//                }
-//                else {
-//                   data_res = 0;
-//                   data_res_err = 0;
-//                }
-//             }
-
-//             if( tmp_mc->GetEntries() > 100 ) {
-//                // mc_mean = 0; 
-//                mc_res = mc_width;
-//                tmp_mc->Fit(f_mc,"QN","", - 3 * mc_res,  + 3 * mc_res);
-               
-//                f_mc->SetLineColor(kCyan);
-//                f_mc->SetLineWidth(3);
-//                //  mc_mean = f_mc->GetParameter(1);
-//                mc_res = f_mc->GetParameter(2);
-               
-//                if(tmp_mc->Fit(f_mc,"Q","same",  - 2. * mc_res, + 2. * mc_res) == 0 ) {
-//                   mc_res = f_mc->GetParameter(2);
-//                   mc_res_err = f_mc->GetParError(2);
-//                }
-//                else {
-//                   mc_res = 0; 
-//                   mc_res_err = 0; 
-//                }  
-//             }
-
-//             if( tmp_gen->GetEntries() > 100 ) {
-//                //gen_mean = 0; 
-//                gen_res = gen_width;
-//                tmp_gen->Fit(f_gen,"QN","",  - 3 * gen_res, + 3 * gen_res);
-               
-//                f_gen->SetLineColor(kCyan);
-//                f_gen->SetLineWidth(3);
-//                //  gen_mean = f_gen->GetParameter(1);
-//                gen_res = f_gen->GetParameter(2);
-               
-//                if(tmp_gen->Fit(f_gen,"Q","same", - 2. * gen_res, + 2. * gen_res) == 0) {
-//                   gen_res = f_gen->GetParameter(2);  
-//                   gen_res_err = f_gen->GetParError(2);
-//                }
-//                else {
-//                   gen_res = 0;
-//                   gen_res_err = 0;
-//                }
-//             }
-         
+            tmp_mc->Rebin(10);
+            tmp_gen->Rebin(10);
+            tmp_gen->Scale(tmp_data1->Integral()/tmp_gen->Integral());
+            tmp_data1->Rebin(10);
 
             // define Gaussian functions using width of truncated RMS
             TF1 *gauss_mc = new TF1("gauss_mc", "gaus(0)", 0, 1);
+            TF1 *gauss_gen = new TF1("gauss_gen", "gaus(0)", 0, 1);
             TF1 *gauss_data = new TF1("gauss_data", "gaus(0)", 0, 1);
-            gauss_mc->SetParameter(0, f_mc->GetParameter(0));
-            // gauss_mc->SetParameter(1, 0);
-            gauss_mc->SetParameter(1, f_mc->GetParameter(1));
+            gauss_mc->SetParameter(0, (1/(mc_width*TMath::Sqrt(2*TMath::Pi())))*tmp_mc->Integral()*tmp_mc->GetBinWidth(5)*2);
+            gauss_mc->SetParameter(1, 0);
             gauss_mc->SetParameter(2, mc_width);
-            gauss_data->SetParameter(0, f_data->GetParameter(0));
-            // gauss_data->SetParameter(1, 0);
-            gauss_data->SetParameter(1, f_data->GetParameter(1));
+            gauss_gen->SetParameter(0, (1/(gen_width*TMath::Sqrt(2*TMath::Pi())))*tmp_gen->Integral()*tmp_gen->GetBinWidth(5)*2);
+            gauss_gen->SetParameter(1, 0);
+            gauss_gen->SetParameter(2, gen_width);
+            gauss_data->SetParameter(0, (1/(data_width*TMath::Sqrt(2*TMath::Pi())))*tmp_data1->Integral()*tmp_data1->GetBinWidth(5)*2);
+            gauss_data->SetParameter(1, 0);
             gauss_data->SetParameter(2, data_width);
           
             // use truncated RMS
@@ -455,32 +446,18 @@ void Extrapolation()
             Geny.push_back( gen_width );
             Geny_e.push_back( gen_width_err );
 
-            // use gauss fit width
-          //   MCy.push_back( mc_res );
-//             MCy_e.push_back( mc_res_err );
-//             Datay.push_back( data_res );
-//             Datay_e.push_back( data_res_err );
-//             Geny.push_back( gen_res );
-//             Geny_e.push_back( gen_res_err );
-
+            // --------------------- //
             // draw asymmetry histos
             TCanvas *c5 = new TCanvas("c5", "", 600, 600);
             c5->SetLogy();
             tmp_mc->GetYaxis()->SetRangeUser(0.1, 100.*tmp_mc->GetMaximum());
-            // tmp_mc->GetXaxis()->SetTitle("(p_{T,1} - p_{T,2})/(p_{T,1} + p_{T,2})");
-            tmp_mc->Rebin(10);
             tmp_mc->GetXaxis()->SetTitle("|A|");
             tmp_mc->GetYaxis()->SetTitle("Events");
             tmp_mc->SetLineColor(30);
             tmp_mc->SetFillColor(30);
             tmp_mc->Draw("hist");
-            gauss_mc->SetLineColor(kRed);
-            // gauss_mc->Draw("same");
-            tmp_data1->Rebin(10);
             tmp_data1->SetMarkerStyle(20);
             tmp_data1->Draw("same");
-            gauss_data->SetLineColor(kBlue);
-            //  gauss_data->Draw("same");
 
             TPaveText *label = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
             label->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
@@ -494,31 +471,32 @@ void Extrapolation()
             leg1->Draw();
 
             if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5->Print("Extrapolation/AsymmHistos" + suffix + ".eps(");
-            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5->Print("Extrapolation/AsymmHistos" + suffix + ".eps)");
+            // else if(ieta == 4 && ipt == 12 && ialpha == 6) c5->Print("Extrapolation/AsymmHistos" + suffix + ".eps)");
+            else if(ieta == 5 && ipt == 12 && ialpha == 6) c5->Print("Extrapolation/AsymmHistos" + suffix + ".eps)");
             else c5->Print("Extrapolation/AsymmHistos" + suffix + ".eps"); 
 
-            TString asymm_name;
-            asymm_name = Form("Extrapolation/AsymmHistos_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
-            c5->Print(asymm_name);
+            if(MakeAllControlPlots) {
+               TString asymm_name;
+               asymm_name = Form("Extrapolation/AsymmHistos_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
+               c5->Print(asymm_name);
+            }
+            // --------------------- //
 
+            // --------------------- //
             // draw gen asymmetry histos
             TCanvas *c5b = new TCanvas("c5b", "", 600, 600);
             c5b->SetLogy();
-            tmp_gen->Rebin(10);
-            //  tmp_gen->Scale(tmp_data->Integral()/tmp_gen->Integral());
-            tmp_gen->GetYaxis()->SetRangeUser(tmp_gen->GetMinimum(), 100.*tmp_gen->GetMaximum());
-            //  tmp_gen->GetXaxis()->SetTitle("(p_{T,1}^{gen} - p_{T,2}^{gen})/(p_{T,1}^{gen} + p_{T,2}^{gen})");
+            tmp_gen->GetYaxis()->SetRangeUser(0.1, 100.*tmp_gen->GetMaximum());
             tmp_gen->GetXaxis()->SetTitle("|A_{gen}|");
             tmp_gen->GetYaxis()->SetTitle("Events");
             tmp_gen->SetLineColor(kOrange-3);
             tmp_gen->SetFillColor(kOrange-3);
             tmp_gen->Draw("hist");
-            //  f_gen->Draw("same");
-                      
+                                
             TPaveText *label2 = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
             label2->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
-            label2->AddText( Form("%0.1f #leq |#eta_{gen}| #leq %0.1f, %3.0f #leq  p_{T, gen}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-            label2->AddText( Form("#alpha_{gen} #leq %0.3f", alpha.at(ialpha)) );
+            label2->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label2->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
             label2->Draw("same");
             
             TLegend* leg2 = util::LabelFactory::createLegendColWithOffset(1,0.65,0.2);
@@ -526,12 +504,229 @@ void Extrapolation()
             leg2->Draw();
 
             if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5b->Print("Extrapolation/GenAsymmHistos" + suffix + ".eps(");
-            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5b->Print("Extrapolation/GenAsymmHistos" + suffix + ".eps)");
+            // else if(ieta == 4 && ipt == 12 && ialpha == 6) c5b->Print("Extrapolation/GenAsymmHistos" + suffix + ".eps)");
+            else if(ieta == 5 && ipt == 12 && ialpha == 6) c5b->Print("Extrapolation/GenAsymmHistos" + suffix + ".eps)");
             else c5b->Print("Extrapolation/GenAsymmHistos" + suffix + ".eps"); 
 
-            TString genasymm_name;
-            genasymm_name = Form("Extrapolation/GenAsymmHistos_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
-            c5b->Print(genasymm_name);
+            if(MakeAllControlPlots) {
+               TString genasymm_name;
+               genasymm_name = Form("Extrapolation/GenAsymmHistos_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
+               c5b->Print(genasymm_name);
+            }
+            // --------------------- //
+
+            // --------------------- //
+            TCanvas *bb = new TCanvas("bb", "", 600, 600);
+            bb->SetLogy();
+            bb->SetBottomMargin(0.25 + 0.75*bb->GetBottomMargin()-0.25*bb->GetTopMargin());
+            bb->cd();
+            tmp_data1->GetYaxis()->SetRangeUser(0.1, 100.*tmp_data1->GetMaximum());
+            tmp_data1->GetXaxis()->SetLabelSize(0);
+            gauss_data->GetXaxis()->SetLabelSize(0);
+            tmp_data1->GetXaxis()->SetTitle("");
+            tmp_data1->GetYaxis()->SetTitle("Events");
+            tmp_data1->SetLineColor(kOrange-3);
+            tmp_data1->SetFillColor(kOrange-3);
+            tmp_data1->Draw("hist");
+            gauss_data->SetLineWidth(2);
+            gauss_data->SetLineColor(kBlue+1);
+            gauss_data->Draw("same");
+
+            TPaveText *label4 = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
+            label4->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label4->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label4->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
+            label4->Draw("same");
+            
+            TLegend* leg4 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
+            leg4->AddEntry(tmp_data1,"Data","LF");
+            leg4->AddEntry(gauss_data,"Gaussian Function","LF");
+            leg4->Draw();
+
+            TPad *pad3 = new TPad("pad3a", "pad3a", 0, 0, 1, 1);
+            pad3->SetTopMargin(0.75 - 0.75*pad3->GetBottomMargin()+0.25*pad3->GetTopMargin());
+            pad3->SetFillStyle(0);
+            pad3->SetFrameFillColor(10);
+            pad3->SetFrameBorderMode(0);
+            pad3->Draw();
+            pad3->cd();
+
+            TH1F* r1 = new TH1F(*tmp_data1);
+            r1->Reset();
+            r1->SetTitle("");
+            r1->GetXaxis()->SetTitle("|A|");
+            r1->GetYaxis()->SetTitle("Data / Gauss.");
+            r1->SetLineColor(kBlack);
+            r1->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
+            r1->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
+            r1->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
+            r1->GetYaxis()->CenterTitle();
+            r1->GetYaxis()->SetNdivisions(505);
+            r1->SetStats(0);
+            r1->SetMarkerStyle(20);
+            r1->SetMarkerSize(1.12);
+            r1->SetMarkerColor(kBlack);
+            r1->Add(tmp_data1, 1);
+            r1->Divide(gauss_data);
+            r1->GetYaxis()->SetRangeUser(0.7, 1.3);
+            r1->Draw("ep");
+            TLine l2;
+            l2.DrawLine(0., 1., 1., 1.);
+            bb->cd();
+           
+            if(ieta == 0 && ipt == 0 && ialpha == 0 ) bb->Print("Extrapolation/AsymmHistosDataWithRatio" + suffix + ".eps(");
+            // else if(ieta == 4 && ipt == 12 && ialpha == 6) bb->Print("Extrapolation/AsymmHistosDataWithRatio" + suffix + ".eps)");
+            else if(ieta == 5 && ipt == 12 && ialpha == 6) bb->Print("Extrapolation/AsymmHistosDataWithRatio" + suffix + ".eps)");
+            else bb->Print("Extrapolation/AsymmHistosDataWithRatio" + suffix + ".eps"); 
+
+            if(MakeAllControlPlots) {
+               TString ratiodata_name;
+               ratiodata_name = Form("Extrapolation/AsymmHistosDataWithRatio_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
+               bb->Print(ratiodata_name);
+            }
+            // --------------------- //
+
+            // --------------------- //
+            TCanvas *cc = new TCanvas("cc", "", 600, 600);
+            cc->SetLogy();
+            cc->SetBottomMargin(0.25 + 0.75*cc->GetBottomMargin()-0.25*cc->GetTopMargin());
+            cc->cd();
+            tmp_mc->GetYaxis()->SetRangeUser(0.1, 100.*tmp_mc->GetMaximum());
+            tmp_mc->GetXaxis()->SetLabelSize(0);
+            gauss_mc->GetXaxis()->SetLabelSize(0);
+            tmp_mc->GetXaxis()->SetTitle("");
+            tmp_mc->GetYaxis()->SetTitle("Events");
+            tmp_mc->SetLineColor(30);
+            tmp_mc->SetFillColor(30);
+            tmp_mc->Draw("hist");
+            gauss_mc->SetLineWidth(2);
+            gauss_mc->SetLineColor(kRed);
+            gauss_mc->Draw("same");
+
+            TPaveText *label3 = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
+            label3->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label3->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label3->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
+            label3->Draw("same");
+            
+            TLegend* leg3 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
+            leg3->AddEntry(tmp_mc,"Simulation","LF");
+            leg3->AddEntry(gauss_mc,"Gaussian Function","LF");
+            leg3->Draw();
+
+            TPad *pad2 = new TPad("pad2a", "pad2a", 0, 0, 1, 1);
+            pad2->SetTopMargin(0.75 - 0.75*pad2->GetBottomMargin()+0.25*pad2->GetTopMargin());
+            pad2->SetFillStyle(0);
+            pad2->SetFrameFillColor(10);
+            pad2->SetFrameBorderMode(0);
+            pad2->Draw();
+            pad2->cd();
+
+            TH1F* r = new TH1F(*tmp_mc);
+            r->Reset();
+            r->SetTitle("");
+            r->GetXaxis()->SetTitle("|A|");
+            r->GetYaxis()->SetTitle("Sim. / Gauss.");
+            r->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
+            r->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
+            r->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
+            r->GetYaxis()->CenterTitle();
+            r->GetYaxis()->SetNdivisions(505);
+            r->SetStats(0);
+            r->SetMarkerStyle(20);
+            r->SetMarkerSize(1.12);
+            r->SetMarkerColor(kBlack);
+            r->SetLineColor(kBlack);
+            r->Add(tmp_mc, 1);
+            r->Divide(gauss_mc);
+            r->GetYaxis()->SetRangeUser(0.7, 1.3);
+            r->Draw("ep");
+            TLine l;
+            l.DrawLine(0., 1., 1., 1.);
+            cc->cd();
+           
+            if(ieta == 0 && ipt == 0 && ialpha == 0 ) cc->Print("Extrapolation/AsymmHistosSimWithRatio" + suffix + ".eps(");
+            //  else if(ieta == 4 && ipt == 12 && ialpha == 6) cc->Print("Extrapolation/AsymmHistosSimWithRatio" + suffix + ".eps)");
+            else if(ieta == 5 && ipt == 12 && ialpha == 6) cc->Print("Extrapolation/AsymmHistosSimWithRatio" + suffix + ".eps)");
+            else cc->Print("Extrapolation/AsymmHistosSimWithRatio" + suffix + ".eps"); 
+
+            if(MakeAllControlPlots) {
+               TString ratiomc_name;
+               ratiomc_name = Form("Extrapolation/AsymmHistosSimWithRatio_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
+               cc->Print(ratiomc_name);
+            }
+            // --------------------- //
+
+            // --------------------- //
+            TCanvas *dd = new TCanvas("dd", "", 600, 600);
+            dd->SetLogy();
+            dd->SetBottomMargin(0.25 + 0.75*dd->GetBottomMargin()-0.25*dd->GetTopMargin());
+            dd->cd();
+            tmp_gen->GetYaxis()->SetRangeUser(0.1, 100.*tmp_gen->GetMaximum());
+            tmp_gen->GetXaxis()->SetLabelSize(0);
+            gauss_gen->GetXaxis()->SetLabelSize(0);
+            tmp_gen->GetXaxis()->SetTitle("");
+            tmp_gen->GetYaxis()->SetTitle("Events");
+            tmp_gen->SetLineColor(kBlue-10);
+            tmp_gen->SetFillColor(kBlue-10);
+            tmp_gen->Draw("hist");
+            gauss_gen->SetLineWidth(2);
+            gauss_gen->SetLineColor(kRed);
+            gauss_gen->Draw("same");
+
+            TPaveText *label3d = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
+            label3d->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label3d->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label3d->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
+            label3d->Draw("same");
+            
+            TLegend* leg3d = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
+            leg3d->AddEntry(tmp_gen,"Simulation","LF");
+            leg3d->AddEntry(gauss_gen,"Gaussian Function","LF");
+            leg3d->Draw();
+
+            TPad *pad2d = new TPad("pad2da", "pad2da", 0, 0, 1, 1);
+            pad2d->SetTopMargin(0.75 - 0.75*pad2d->GetBottomMargin()+0.25*pad2d->GetTopMargin());
+            pad2d->SetFillStyle(0);
+            pad2d->SetFrameFillColor(10);
+            pad2d->SetFrameBorderMode(0);
+            pad2d->Draw();
+            pad2d->cd();
+
+            TH1F* rd = new TH1F(*tmp_gen);
+            rd->Reset();
+            rd->SetTitle("");
+            rd->GetXaxis()->SetTitle("|A_{Gen}|");
+            rd->GetYaxis()->SetTitle("Gen. / Gauss.");
+            rd->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
+            rd->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
+            rd->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
+            rd->GetYaxis()->CenterTitle();
+            rd->GetYaxis()->SetNdivisions(505);
+            rd->SetStats(0);
+            rd->SetMarkerStyle(20);
+            rd->SetMarkerSize(1.12);
+            rd->SetMarkerColor(kBlack);
+            rd->SetLineColor(kBlack);
+            rd->Add(tmp_gen, 1);
+            rd->Divide(gauss_gen);
+            rd->GetYaxis()->SetRangeUser(0.7, 1.3);
+            rd->Draw("ep");
+            TLine ld;
+            ld.DrawLine(0., 1., 1., 1.);
+            dd->cd();
+           
+            if(ieta == 0 && ipt == 0 && ialpha == 0 ) dd->Print("Extrapolation/AsymmHistosGenWithRatio" + suffix + ".eps(");
+            // else if(ieta == 4 && ipt == 12 && ialpha == 6) dd->Print("Extrapolation/AsymmHistosGenWithRatio" + suffix + ".eps)");
+            else if(ieta == 5 && ipt == 12 && ialpha == 6) dd->Print("Extrapolation/AsymmHistosGenWithRatio" + suffix + ".eps)");
+            else dd->Print("Extrapolation/AsymmHistosGenWithRatio" + suffix + ".eps"); 
+
+            if(MakeAllControlPlots) {
+               TString ratiogen_name;
+               ratiogen_name = Form("Extrapolation/AsymmHistosGenWithRatio_Eta%i_pt%i_alpha%i" + suffix + ".eps", ieta, ipt, ialpha);
+               dd->Print(ratiogen_name);
+            }
+            // --------------------- //
          }
 
          // Covariance matrices needed for fitting 
@@ -543,8 +738,8 @@ void Extrapolation()
          y_cov_gen.ResizeTo(alpha.size(), alpha.size());
 
          // fill covariance matrix for data and mc
-         for(int ialpha=0; ialpha < alpha.size(); ++ialpha){
-            for (Int_t jalpha =0; jalpha < alpha.size(); jalpha++){
+         for(unsigned int ialpha=0; ialpha < alpha.size(); ++ialpha){
+            for(unsigned int jalpha =0; jalpha < alpha.size(); jalpha++){
                if( ialpha <= jalpha ) {
                   double n1_mc = pow(MCy.at(ialpha),2)/(2*pow(MCy_e.at(ialpha),2));
                   double n2_mc = pow(MCy.at(jalpha),2)/(2*pow(MCy_e.at(jalpha),2));
@@ -593,10 +788,11 @@ void Extrapolation()
          TF1 *lin_extrapol_gen = new TF1("lin_extrapol_gen","[0]+[1]*x",0,alpha.back()+0.05);
                   
          //fit extrapolation function to the TGraphErrors for data and MC  
-        //  extrapol_MC->Fit("lin_extrapol_mc","Q","same",0,alpha.back()+0.05);
-//          extrapol_Data->Fit("lin_extrapol_data","Q","same",0,alpha.back()+0.05);
-//          extrapol_Gen->Fit("lin_extrapol_gen","Q","same",0,alpha.back()+0.05);
-                 
+         // extrapol_MC->Fit("lin_extrapol_mc","Q","same",0,alpha.back()+0.05);
+         // extrapol_Data->Fit("lin_extrapol_data","Q","same",0,alpha.back()+0.05);
+         // extrapol_Gen->Fit("lin_extrapol_gen","Q","same",0,alpha.back()+0.05);
+           
+         // --------------------- //
          // fit mc
          data.reset();
          data.x_val = x;
@@ -612,8 +808,10 @@ void Extrapolation()
          double d_offset = offset;
              
          std::cout << "MC start values: " << "slope: " << slope << " offset: " << offset << std::endl; 
-         make_lin_fit(slope, d_slope, offset, d_offset);
+         double chi2MC = make_lin_fit(slope, d_slope, offset, d_offset);
          std::cout << "MC fit values: " << "slope: " << slope << " offset: " << offset << std::endl; 
+
+         chi2_mc->SetBinContent(ipt+1, chi2MC/(data.x_val.size()-2));
 
          lin_extrapol_mc->SetParameter(0, offset);
          lin_extrapol_mc->SetParError(0, d_offset);
@@ -622,7 +820,9 @@ void Extrapolation()
          extrapol_MC->GetListOfFunctions()->Add(lin_extrapol_mc);
          
          data.reset();
+         // --------------------- //
          
+         // --------------------- //
          // fit data
          data.x_val = x;
          data.y_val = Datay;
@@ -637,8 +837,10 @@ void Extrapolation()
          d_offset = offset;
             
          std::cout << "Data start values: " << "slope: " << slope << " offset: " << offset << std::endl; 
-         make_lin_fit(slope, d_slope, offset, d_offset);
+         double chi2Data = make_lin_fit(slope, d_slope, offset, d_offset);
          std::cout << "Data fit values: " << "slope: " << slope << " offset: " << offset << std::endl; 
+
+         chi2_data->SetBinContent(ipt+1, chi2Data/(data.x_val.size()-2));
          
          lin_extrapol_data->SetParameter(0, offset);
          lin_extrapol_data->SetParError(0, d_offset);
@@ -647,7 +849,9 @@ void Extrapolation()
          extrapol_Data->GetListOfFunctions()->Add(lin_extrapol_data);
          
          data.reset();
+         // --------------------- //
 
+         // --------------------- //
          // fit gen
          data.x_val = x;
          data.y_val = Geny;
@@ -662,8 +866,10 @@ void Extrapolation()
          d_offset = offset;
             
          std::cout << "Gen start values: " << "slope: " << slope << " offset: " << offset << std::endl; 
-         make_lin_fit(slope, d_slope, offset, d_offset);
+         double chi2Gen = make_lin_fit(slope, d_slope, offset, d_offset);
          std::cout << "Gen fit values: " << "slope: " << slope << " offset: " << offset << std::endl; 
+
+         chi2_gen->SetBinContent(ipt+1, chi2Gen/(data.x_val.size()-2));
          
          lin_extrapol_gen->SetParameter(0, offset);
          lin_extrapol_gen->SetParError(0, d_offset);
@@ -672,7 +878,9 @@ void Extrapolation()
          extrapol_Gen->GetListOfFunctions()->Add(lin_extrapol_gen);
          
          data.reset();
-
+         // --------------------- //
+         
+         // --------------------- //
          // draw extrapolations data + mc
          TCanvas *c = new TCanvas("c","",600,600);
          std::pair <float,float> minMaxPair = determineMinMax(extrapol_Data);
@@ -710,16 +918,18 @@ void Extrapolation()
          leg1->AddEntry(extrapol_MC,"Extrapolation (MC)","LP");
 
          leg1->Draw();
-         cmsPrel(-1, false , 8);
+         //   cmsPrel(-1, false , 8);
 
          TString name;
          name = Form("Extrapolation/Extrapol_Eta%i_pt%i" + suffix + ".eps", ieta, ipt);
          c->Print(name);
+         // --------------------- //
 
+         // --------------------- //
          // draw extrapolations gen (PLI)
          TCanvas *cb = new TCanvas("c","",600,600);
          std::pair <float,float> minMaxPair2 = determineMinMax(extrapol_Data);
-         cb->DrawFrame(0,minMaxPair2.first*0.5-0.05,alpha.back()+0.05,minMaxPair2.second*1.47,(";#alpha_{max, gen};#sigma_{A, gen}"));
+         cb->DrawFrame(0,minMaxPair2.first*0.5-0.05,alpha.back()+0.05,minMaxPair2.second*1.47,(";#alpha_{max};#sigma_{A, gen}"));
          extrapol_Gen->SetMarkerStyle(20);
          extrapol_Gen->SetMarkerColor(kBlue+1);
          extrapol_Gen->SetLineColor(kBlue+1);
@@ -734,19 +944,21 @@ void Extrapolation()
 
          TPaveText *label2 = util::LabelFactory::createPaveTextWithOffset(2,1.0,0.05);
          label2->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
-         label2->AddText( Form("%0.1f #leq |#eta_{gen}| #leq %0.1f, %3.0f #leq p_{T, gen}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+         label2->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
          label2->Draw("same");
   
          TLegend* leg2 = util::LabelFactory::createLegendWithOffset(2,0.15);
          leg2->AddEntry(extrapol_Gen,"Extrapolation (PLI)","LP");
 
          leg2->Draw();
-         cmsPrel(-1, false , 8);
+         //  cmsPrel(-1, false , 8);
 
          TString name2;
          name2 = Form("Extrapolation/Extrapol_Eta%i_pt%i_gen" + suffix + ".eps", ieta, ipt);
          cb->Print(name2);
+         // --------------------- //
 
+         // get values from extrapolation fit
          float par_data = lin_extrapol_data->GetParameter(0);
          float par_data_err = lin_extrapol_data->GetParError(0);
          float par_mc = lin_extrapol_mc->GetParameter(0);
@@ -765,18 +977,26 @@ void Extrapolation()
          cout << "Parameter gen: " << par_gen << endl;
          cout << "Parameter error gen: " << par_gen_err << endl;
 
+         // fill extrapolated histos
          extrapolated_data->SetBinContent(ipt+1, par_data);
          extrapolated_data->SetBinError(ipt+1, par_data_err);
+         extrapolated_data_slope->SetBinContent(ipt+1, lin_extrapol_data->GetParameter(1));
+         extrapolated_data_slope->SetBinError(ipt+1, lin_extrapol_data->GetParError(1));
          extrapolated_mc->SetBinContent(ipt+1, par_mc);
-         extrapolated_mc->SetBinError(ipt+1, par_mc_err);   
+         extrapolated_mc->SetBinError(ipt+1, par_mc_err);  
+         extrapolated_mc_slope->SetBinContent(ipt+1, lin_extrapol_mc->GetParameter(1));
+         extrapolated_mc_slope->SetBinError(ipt+1, lin_extrapol_mc->GetParError(1));
          extrapolated_gen->SetBinContent(ipt+1, par_gen);
-         extrapolated_gen->SetBinError(ipt+1, par_gen_err);    
+         extrapolated_gen->SetBinError(ipt+1, par_gen_err);  
+         extrapolated_gen_slope->SetBinContent(ipt+1, lin_extrapol_gen->GetParameter(1));
+         extrapolated_gen_slope->SetBinError(ipt+1, lin_extrapol_gen->GetParError(1));
 
          float par_data_pli_corr = 0;
          float par_data_pli_corr_err = 0;
          float par_mc_pli_corr = 0;
          float par_mc_pli_corr_err = 0;
 
+         // use only bins where extrapolation worked + calc values with pli correction
          if(par_gen > 0 && par_data > 0 && par_mc > 0 && par_data > par_gen && par_mc > par_gen) {
             par_data_pli_corr = TMath::Sqrt(pow(par_data,2) - pow(par_gen,2));
             par_data_pli_corr_err = TMath::Sqrt( pow(par_data,2)/(pow(par_data,2) - pow(par_gen,2)) * pow(par_data_err,2) +  pow(par_gen,2)/(pow(par_data,2) - pow(par_gen,2)) * pow(par_gen_err,2));
@@ -784,6 +1004,7 @@ void Extrapolation()
             par_mc_pli_corr_err = TMath::Sqrt( pow(par_mc,2)/(pow(par_mc,2) - pow(par_gen,2)) * pow(par_mc_err,2) +  pow(par_gen,2)/(pow(par_mc,2) - pow(par_gen,2)) * pow(par_gen_err,2));
          }
             
+         // fill extrapolated histos after pli correction
          extrapolated_data_with_pli->SetBinContent(ipt+1, par_data_pli_corr);
          extrapolated_data_with_pli->SetBinError(ipt+1, par_data_pli_corr_err);
          extrapolated_mc_with_pli->SetBinContent(ipt+1, par_mc_pli_corr);
@@ -794,122 +1015,175 @@ void Extrapolation()
          cout << "Parameter mc after pli: " << par_mc_pli_corr << endl;
          cout << "Parameter error mc after pli: " << par_mc_pli_corr_err << endl;
 
-         // get mc truth resolution
-         TString hname_res = Form("Response_Pt%i_eta%i", ipt, ieta);
-         //TString hname_res = Form("ResponseRecoPtAve_Pt%i_eta%i", ipt, ieta);
+         // calc MC truth resolution
+         if(useTruth) {
+            // get mc truth resolution
+            TString hname_res = Form("Response_Pt%i_eta%i", ipt, ieta);
     
-         mc_file->cd();
-         tmp_res = 0;
-         tmp_res = (TH1F*) gDirectory->FindObjectAny(hname_res);
-         //   tmp_res->Rebin(10);
+            mc_file->cd();
+            tmp_res = 0;
+            tmp_res = (TH1F*) gDirectory->FindObjectAny(hname_res);
 
-         // double truth_res = 0;//= GetAsymmWidth(tmp_res, xq_IQW, yq_IQW); 
-         double truth_res = GetTruthRes(tmp_res, xq_IQW, yq_IQW);
-         //double truth_res_err = 0;//truth_res/(TMath::Sqrt(2*tmp_res->GetEffectiveEntries()));
-         double truth_res_err = truth_res/(TMath::Sqrt(2*tmp_res->GetEffectiveEntries()));
-         double chi2 = 0;
-         double ndf = 0;
-//          double mean = tmp_res->GetMean();
-//          double mean_err = 0;
-//          // fit gauss function to core of response
-//          if( tmp_res->GetEntries() > 100 ) {
-//             mean = tmp_res->GetMean(); 
-//             truth_res = tmp_res->GetRMS();
-//             tmp_res->Fit("gaus","QNI","", mean - 3 * truth_res,mean + 3 * truth_res);
+            double truth_res = GetTruthRes(tmp_res, 0.985);
+            double truth_res_err = truth_res/(TMath::Sqrt(2*tmp_res->GetEffectiveEntries()));
+            //double truth_res = 0;
+            //double truth_res_err = 0;
+
+            double chi2 = 0;
+            double ndf = 0;
+            double mean = tmp_res->GetMean();
+            double mean_err = 0;
+            // fit gauss function to core of response
+            if( tmp_res->GetEntries() > 100 ) {
+               mean = tmp_res->GetMean(); 
+               truth_res = tmp_res->GetRMS();
+               tmp_res->Fit("gaus","QNI","", mean - 2.5 * truth_res,mean + 2.5 * truth_res);
             
-//             TF1 *f = (TF1*)gROOT->GetFunction("gaus")->Clone();
-//             f->SetLineColor(kRed);
-//             f->SetLineWidth(3);
-//             mean = f->GetParameter(1);
-//             truth_res = f->GetParameter(2);
+               TF1 *f = (TF1*)gROOT->GetFunction("gaus")->Clone();
+               f->SetLineColor(kRed);
+               f->SetLineWidth(3);
+               mean = f->GetParameter(1);
+               truth_res = f->GetParameter(2);
             
-//             if( (tmp_res->Fit(f,"QI","same",mean - 1.5 * truth_res, mean + 1.5 * truth_res) == 0) ) { 
-//                mean = f->GetParameter(1);
-//                mean_err = f->GetParError(1);
-//                truth_res = f->GetParameter(2);
-//                truth_res_err = f->GetParError(2);
-//                chi2 = f->GetChisquare();
-//                ndf = f->GetNDF();
-//             }
-//          }
+               if( (tmp_res->Fit(f,"QI","same",mean - 2.0 * truth_res, mean + 2.0 * truth_res) == 0) ) { 
+                  mean = f->GetParameter(1);
+                  mean_err = f->GetParError(1);
+                  truth_res = f->GetParameter(2);
+                  truth_res_err = f->GetParError(2);
+                  chi2 = f->GetChisquare();
+                  ndf = f->GetNDF();
+               }
+            }
+                  
+            truth_resolution->SetBinContent(ipt+1, truth_res);
+            truth_resolution->SetBinError(ipt+1, truth_res_err);
+
+            tmp_res->Rebin(10);
+
+            TF1 *gauss_res = new TF1("gauss_res", "gaus(0)", 0, 2);
+            gauss_res->SetParameter(0, (1/(truth_res*TMath::Sqrt(2*TMath::Pi())))*tmp_res->Integral()*tmp_res->GetBinWidth(5));
+            gauss_res->SetParameter(1, mean );
+            gauss_res->SetParameter(2, truth_res);  
          
-//          if(mean && truth_res) {
-//             truth_res = truth_res/mean;
-//             truth_res_err = TMath::Sqrt(pow(1/mean, 2) * pow(truth_res_err,2) + pow(truth_res/(mean*mean), 2) * pow(mean_err,2));
-//          }
+            // draw truth response histos
+            // --------------------- //
+            TCanvas *res = new TCanvas("res", "", 600, 600);
+            res->SetLogy();
+            res->SetBottomMargin(0.25 + 0.75*res->GetBottomMargin()-0.25*res->GetTopMargin());
+            res->cd();
+            tmp_res->GetYaxis()->SetRangeUser(0.000001, 500 * tmp_res->GetMaximum());
+            tmp_res->SetLabelSize(0);
+            tmp_res->GetXaxis()->SetTitle("");
+            tmp_res->Draw("hist");
+            gauss_res->Draw("same");
 
-         double fit_quality = chi2/ndf;
-         
-         truth_resolution->SetBinContent(ipt+1, truth_res);
-         truth_resolution->SetBinError(ipt+1, truth_res_err);
+            TPaveText *label3d = util::LabelFactory::createPaveTextWithOffset(3,1.0,0.01);
+            label3d->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label3d->AddText( Form("%0.1f #leq |#eta_{gen}| #leq %0.1f, %3.0f #leq p_{T, gen} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label3d->AddText("");
+            label3d->Draw("same");
 
-         // draw truth response histos
-         TCanvas *res = new TCanvas("res", "", 600, 600);
-         res->SetLogy();
-         tmp_res->Rebin(10);
-         tmp_res->GetYaxis()->SetRangeUser(0.000001, 50 * tmp_res->GetMaximum());
-         tmp_res->GetXaxis()->SetTitle("p_{T, reco}/p_{T, gen}");
-         // tmp_res->SetMarkerSize(0.7);
-         tmp_res->Draw("hist");
+            TLegend* legres = util::LabelFactory::createLegendColWithOffset(1,1.0,0.12);
+            legres->AddEntry(tmp_res,"Simulation","LF");
+            legres->Draw("same");
 
-         TPaveText *label3 = util::LabelFactory::createPaveTextWithOffset(3,1.0,0.01);
-         label3->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
-         //   label3->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq p_{T, gen} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-         label3->AddText( Form("%0.1f #leq |#eta_{gen}| #leq %0.1f, %3.0f #leq p_{T, gen} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
-         label3->AddText("");
-         //  label3->AddText( Form("#chi^{2}/ndf : %0.2f", fit_quality) );
-         label3->Draw("same");
+            TPad *pad2b = new TPad("pad2ba", "pad2ba", 0, 0, 1, 1);
+            pad2b->SetTopMargin(0.75 - 0.75*pad2b->GetBottomMargin()+0.25*pad2b->GetTopMargin());
+            pad2b->SetFillStyle(0);
+            pad2b->SetFrameFillColor(10);
+            pad2b->SetFrameBorderMode(0);
+            pad2b->Draw();
+            pad2b->cd();
 
-         TLegend* legres = util::LabelFactory::createLegendColWithOffset(1,1.0,0.12);
-         legres->AddEntry(tmp_res,"Simulation","LF");
-         legres->Draw("same");
+            TH1F* r2b = new TH1F(*tmp_res);
+            r2b->Reset();
+            r2b->SetTitle("");
+            r2b->GetXaxis()->SetTitle("p_{T, reco}/p_{T, gen}");
+            r2b->GetYaxis()->SetTitle("Gauss. / Sim.");
+            r2b->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
+            r2b->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
+            r2b->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
+            r2b->GetYaxis()->CenterTitle();
+            r2b->GetYaxis()->SetNdivisions(505);
+            r2b->SetStats(0);
+            r2b->SetMarkerStyle(20);
+            r2b->SetMarkerSize(1.12);
+            r2b->SetMarkerColor(kBlack);
+            r2b->SetLineColor(kBlack);
+            r2b->Add(gauss_res, 1);
+            r2b->Divide(tmp_res);
+            r2b->GetYaxis()->SetRangeUser(0.7, 1.3);
+            r2b->Draw("ep");
+            TLine l2b;
+            l2b.DrawLine(0., 1., 2., 1.);
+            res->cd();
 
-         if(ieta == 0 && ipt == 0 ) res->Print("Extrapolation/TruthResponse" + suffix + ".eps(");
-         else if(ieta == 4 && ipt == 12) res->Print("Extrapolation/TruthResponse" + suffix + ".eps)");
-         else res->Print("Extrapolation/TruthResponse" + suffix + ".eps");
+            if(ieta == 0 && ipt == 0 ) res->Print("Extrapolation/TruthResponse" + suffix + ".eps(");
+            else if(ieta == 4 && ipt == 12) res->Print("Extrapolation/TruthResponse" + suffix + ".eps)");
+            else res->Print("Extrapolation/TruthResponse" + suffix + ".eps");
 
-         if(ieta == 0 && ipt == 8) res->Print("Extrapolation/TruthResponse_example" + suffix + ".eps"); 
+            if(ieta == 0 && ipt == 8) res->Print("Extrapolation/TruthResponse_example" + suffix + ".eps"); 
+            // --------------------- //
+         }
       }
 
-      // fit function for truth resolution
-      TF1 *res_func = new TF1("res_func", "TMath::Sqrt(sign([0])*pow([0]/x,2)+pow([1],2)*pow(x,[2]-1.)+pow([3],2))" );
-      res_func->SetParameters(1.2, 0.5, 0.03, 0.1);
-    
+      // --------------------- //
+      // write pli to root file for each eta-bin
+      TString name_pli;
+      name_pli = Form("Extrapolation/PLI_Eta%i" + suffix + ".root", ieta);
+      TFile* output_pli = new TFile(name_pli, "RECREATE");
+      extrapolated_gen->Write();
+      output_pli->Write();
+      // --------------------- //
+
+      // --------------------- //
+      // write truth resolution to root file for each eta-bin
+      TString name_truth;
+      name_truth = Form("Extrapolation/TruthResolution_Eta%i" + suffix + "_2SigmaGaussFit.root", ieta);
+      // name_truth = Form("Extrapolation/TruthResolution_Eta%i" + suffix + "_1p5SigmaGaussFit.root", ieta);
+      // name_truth = Form("Extrapolation/TruthResolution_Eta%i" + suffix + "_98p5TruncatedRMS.root", ieta);
+      // name_truth = Form("Extrapolation/TruthResolution_Eta%i" + suffix + "_97TruncatedRMS.root", ieta);
+      // name_truth = Form("Extrapolation/TruthResolution_Eta%i" + suffix + "_95TruncatedRMS.root", ieta);
+      TFile* output_truth = new TFile(name_truth, "RECREATE");
+      truth_resolution->Write();
+      output_truth->Write();
+      // --------------------- //
+
+      // --------------------- //
+      // write absolute resolution after extrapolation to root file for each eta-bin
+      TString name_resolution;
+      name_resolution = Form("Extrapolation/AbsoluteResolution_Eta%i" + suffix + ".root", ieta);
+      TFile* output_resolution = new TFile(name_resolution, "RECREATE");
+      extrapolated_mc_with_pli->Write();
+      extrapolated_data_with_pli->Write();
+      output_resolution->Write();
+      // --------------------- //
+
+      // --------------------------------------- //    
       // draw res after extrapolations (--> closure test for absolute resolution)
       TCanvas *c2 = new TCanvas("c2","",600,600);
       c2->SetLogx();
       c2->SetBottomMargin(0.25 + 0.75*c2->GetBottomMargin()-0.25*c2->GetTopMargin());
       c2->cd();
-      //  truth_resolution->GetXaxis()->SetTitle("#bar{ p}_{T} [GeV]");
       truth_resolution->GetXaxis()->SetLabelSize(0);
       truth_resolution->GetYaxis()->SetRangeUser(0, 0.3);
       truth_resolution->GetYaxis()->SetTitle("#sqrt{2}#sigma_{A}");
       truth_resolution->SetMarkerStyle(26);
       truth_resolution->SetMarkerColor(kRed+1);
       truth_resolution->Draw();
-      truth_resolution->Fit("res_func", "WLQ", "same", truth_resolution->GetBinCenter(truth_resolution->FindFirstBinAbove()), truth_resolution->GetBinCenter(truth_resolution->FindLastBinAbove()) );
-      extrapolated_mc->Scale(TMath::Sqrt(2));
-      //  extrapolated_mc->Draw("same");
-      extrapolated_gen->Scale(TMath::Sqrt(2));
-      //extrapolated_gen->SetLineColor(kBlue+1);
-      // extrapolated_gen->Draw("same");
-      //  extrapolated_data->Draw("same");
       extrapolated_mc_with_pli->Scale(TMath::Sqrt(2));
       extrapolated_mc_with_pli->SetMarkerStyle(25);
       extrapolated_mc_with_pli->SetMarkerColor(kBlue+2);
       extrapolated_mc_with_pli->Draw("same");
-      extrapolated_data_with_pli->Scale(TMath::Sqrt(2));
-      extrapolated_data_with_pli->SetMarkerColor(41);
-      extrapolated_data_with_pli->SetMarkerStyle(27);
-      //  extrapolated_data_with_pli->Draw("same");
 
+      // scale data accordingly to get ratio correct
+      extrapolated_data_with_pli->Scale(TMath::Sqrt(2));
+    
       TLegend* leg3 = util::LabelFactory::createLegendWithOffset(2,0.175);
       leg3->AddEntry(truth_resolution,"Truth resolution","P");
-      leg3->AddEntry(extrapolated_mc_with_pli,"Measured resolution","P");
-      // leg3->AddEntry(extrapolated_data_with_pli,"Data resolution","P");
-      
+      leg3->AddEntry(extrapolated_mc_with_pli,"Measured resolution (MC)","P");      
       leg3->Draw();
-      cmsPrel(-1, false , 8);
+      // cmsPrel(-1, false , 8);
 
       TPad *pad2 = new TPad("pad2a", "pad2a", 0, 0, 1, 1);
       pad2->SetLogx();
@@ -925,7 +1199,7 @@ void Extrapolation()
 
       TH1F* r = new TH1F(*extrapolated_mc_with_pli);
       r->Sumw2();
-      r->SetXTitle("p_{T}^{ave} [GeV]");
+      r->SetXTitle("p_{T}^{ref} [GeV]");
       r->SetYTitle("#sigma - #sigma_{truth} ) / #sigma");
       r->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
       r->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
@@ -933,7 +1207,6 @@ void Extrapolation()
       r->GetYaxis()->SetNdivisions(505);
       r->SetStats(0);
       r->SetMarkerStyle(20);
-      //      r->SetMarkerSize(1.12);
       r->SetMarkerColor(kBlack);
       r->Reset();
       r->Add(extrapolated_mc_with_pli, 1);
@@ -952,82 +1225,203 @@ void Extrapolation()
       label->Draw("same");
 
       TString name2;
-      name2 = Form("Extrapolation/Extrapol_Eta%i" + suffix + ".eps", ieta);
+      name2 = Form("Extrapolation/AbsoluteResolutionClosure_Eta%i" + suffix + ".eps", ieta);
       c2->Print(name2);
+      // --------------------- //
+
+      // --------------------- //
+      // plot results of extrapolation
+      TCanvas *c2b = new TCanvas("c2b","",600,600);
+      c2b->SetLogx();
+      extrapolated_mc->GetYaxis()->SetTitle("#sigma_{A}");
+      extrapolated_mc->GetYaxis()->SetRangeUser(0., 0.2);
+      extrapolated_mc->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
+      extrapolated_mc->SetLineColor(kRed+1);
+      extrapolated_mc->Draw("hist");
+      extrapolated_gen->SetLineColor(kBlue+1);
+      extrapolated_gen->SetMarkerColor(kBlue+1);
+      extrapolated_gen->Draw("samehist");
+      extrapolated_data->Draw("same");
+
+      TLegend* leg3b = util::LabelFactory::createLegendWithOffset(3,0.175);
+      leg3b->AddEntry(extrapolated_data,"Data","PL");
+      leg3b->AddEntry(extrapolated_mc,"MC","L");
+      leg3b->AddEntry(extrapolated_gen,"PLI","L");
+      
+      leg3b->Draw();
+      // cmsPrel(-1, false , 8);
+
+      TPaveText *labelb = util::LabelFactory::createPaveTextWithOffset(2,1.0,0.05);
+      labelb->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+      labelb->AddText( Form("%0.1f #leq |#eta| #leq %0.1f", eta_bins[ieta], eta_bins[ieta+1]) );
+      labelb->Draw("same");
+
+      TString name2b;
+      name2b = Form("Extrapolation/Extrapol_Eta%i" + suffix + ".eps", ieta);
+      c2b->Print(name2b);
+      // --------------------- //
+
+      // --------------------- //
+      // plot slopes of extrapolation
+      TCanvas *c4b = new TCanvas("c4b","",600,600);
+      c4b->SetLogx();
+      extrapolated_mc_slope->GetYaxis()->SetTitle("#Delta#sigma_{A}");
+      extrapolated_mc_slope->GetYaxis()->SetRangeUser(0.8, 1.2);
+      extrapolated_mc_slope->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
+      extrapolated_mc_slope->SetMarkerColor(kRed+1);
+      extrapolated_mc_slope->SetLineColor(kRed+1);
+      extrapolated_gen_slope->SetLineColor(kBlue+1);
+      extrapolated_gen_slope->SetMarkerColor(kBlue+1);
+      extrapolated_data_slope->GetYaxis()->SetRangeUser(0.8, 1.4);
+      extrapolated_data_slope->Divide(extrapolated_mc_slope);
+      extrapolated_data_slope->Draw();
+
+      TLegend* leg4c = util::LabelFactory::createLegendWithOffset(3,0.175);
+      leg4c->AddEntry(extrapolated_data_slope,"Data","PL");
+      leg4c->AddEntry(extrapolated_mc_slope,"MC","L");
+      leg4c->AddEntry(extrapolated_gen_slope,"PLI","L");
+      
+      leg4c->Draw();
+      // cmsPrel(-1, false , 8);
+
+      labelb->Draw("same");
+
+      TString name3b;
+      name3b = Form("Extrapolation/ExtrapolSlope_Eta%i" + suffix + ".eps", ieta);
+      c4b->Print(name3b);
+      // --------------------- //
+
+      // reset color
+      extrapolated_mc->SetLineColor(kBlack);
+
+      // --------------------- //
+      // plot chi2/ndf for extrapolations
+      TCanvas *c2c = new TCanvas("c2c","",600,600);
+      c2c->SetLogx();
+      chi2_mc->GetYaxis()->SetTitle("#chi^{2}/ndf");
+      chi2_mc->GetYaxis()->SetRangeUser(0., 8.0);
+      chi2_mc->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
+      chi2_mc->SetLineColor(kRed+1);
+      chi2_mc->Draw();
+      chi2_gen->SetLineColor(kBlue+1);
+      chi2_gen->SetMarkerColor(kBlue+1);
+      chi2_data->Draw("same");
+
+      TLegend* leg3c = util::LabelFactory::createLegendWithOffset(2,0.175);
+      leg3c->AddEntry(chi2_data,"Data","L");
+      leg3c->AddEntry(chi2_mc,"MC","L");
+      
+      leg3c->Draw();
+      // cmsPrel(-1, false , 8);
+
+      TPaveText *labelc = util::LabelFactory::createPaveTextWithOffset(2,1.0,0.05);
+      labelc->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+      labelc->AddText( Form("%0.1f #leq |#eta| #leq %0.1f", eta_bins[ieta], eta_bins[ieta+1]) );
+      labelc->Draw("same");
+
+      TString name2c;
+      name2c = Form("Extrapolation/GoodnessOfFit_Eta%i" + suffix + ".eps", ieta);
+      c2c->Print(name2c);
+      // --------------------- //
 
       // --------------------------------------- //
       // calc data/mc ratio and fit with constant
-      TH1F* ratio = new TH1F(*extrapolated_mc);
-      TH1F* ratio_with_pli = new TH1F(*extrapolated_mc);
-      ratio->Divide(extrapolated_data, extrapolated_mc, 1, 1);
-      ratio_with_pli->Divide(extrapolated_data_with_pli, extrapolated_mc_with_pli, 1, 1);
+      if(extrapolated_mc->FindFirstBinAbove(0) > 0) {
+         TH1F* ratio = new TH1F(*extrapolated_mc);
+         TH1F* ratio_with_pli = new TH1F(*extrapolated_mc);
+         ratio->Divide(extrapolated_data, extrapolated_mc, 1, 1);
+         ratio_with_pli->Divide(extrapolated_data_with_pli, extrapolated_mc_with_pli, 1, 1);
     
-      TF1 *fit_const = new TF1("fit_const", "[0]", ratio->GetXaxis()->GetXmin(), ratio->GetXaxis()->GetXmax());
-      fit_const->SetFillColor(kGray);
-      // fit_const->SetFillStyle(1001);
-      fit_const->SetParameters(0, 1.1);
-      fit_const->SetParName(0, "const");
-      ratio->Fit("fit_const", "", "same");
-      ratio->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
-      ratio->GetYaxis()->SetRangeUser(0.8, 2.0);
-      ratio->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
+         TF1 *fit_const = new TF1("fit_const", "[0]", ratio->GetXaxis()->GetXmin(), ratio->GetXaxis()->GetXmax());
+         double chi2_const = fit_const->GetChisquare();
+         double ndf_const = fit_const->GetNDF();
+         fit_const->SetFillColor(kGray);
+         fit_const->SetParameters(0, 1.1);
+         fit_const->SetParName(0, "const");
+         // fit ratio without pli corrrection
+         ratio->Fit("fit_const", "", "same");
+         ratio->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
+         ratio->GetYaxis()->SetRangeUser(0.8, 2.0);
+         ratio->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
 
-      RatioVsEta->SetBinContent(ieta+1, ratio->GetFunction("fit_const")->GetParameter(0));
-      RatioVsEta->SetBinError(ieta+1, ratio->GetFunction("fit_const")->GetParError(0));
+         RatioVsEta->SetBinContent(ieta+1, ratio->GetFunction("fit_const")->GetParameter(0));
+         RatioVsEta->SetBinError(ieta+1, ratio->GetFunction("fit_const")->GetParError(0));
+
+         double fit_qual = chi2_const/ndf_const;
       
-      //Create a histogram to hold the confidence intervals
-      TH1D *hint = new TH1D("hint","Fitted function with .95 conf.band", 100, ratio->GetXaxis()->GetXmin(), ratio->GetXaxis()->GetXmax());
-      hint->Sumw2();
-      (TVirtualFitter::GetFitter())->GetConfidenceIntervals(hint, 0.68);
-      //Now the "hint" histogram has the fitted function values as the 
-      //bin contents and the confidence intervals as bin errors
-      hint->SetMarkerStyle(1);
-      hint->SetLineColor(kRed);
-      hint->SetFillColor(kGray);
+         //Create a histogram to hold the confidence intervals
+         TH1D *hint = new TH1D("hint","Fitted function with .95 conf.band", 100, ratio->GetXaxis()->GetXmin(), ratio->GetXaxis()->GetXmax());
+         hint->Sumw2();
+         (TVirtualFitter::GetFitter())->GetConfidenceIntervals(hint, 0.68);
+         //Now the "hint" histogram has the fitted function values as the 
+         //bin contents and the confidence intervals as bin errors
+         hint->SetMarkerStyle(1);
+         hint->SetLineColor(kRed);
+         hint->SetFillColor(kGray);
     
-      TCanvas *c3 = new TCanvas("c3","",600,600);
-      c3->SetLogx();
-      ratio->Draw();
-      hint->DrawClone("e4 same");
-      ratio->Draw("same");
+         // --------------------- //
+         // plot ratio without pli correction
+         TCanvas *c3 = new TCanvas("c3","",600,600);
+         c3->SetLogx();
+         ratio->Draw();
+         hint->DrawClone("e4 same");
+         ratio->Draw("same");
+         label->Draw("same");
 
-      label->Draw("same");
+         TPaveText *labeld = util::LabelFactory::createPaveTextWithOffset(1,1.0,0.35);
+         labeld->AddText( Form("#chi^{2}/ndf : %0.2f", fit_qual) );
+         labeld->Draw("same");
 
-      TLegend* leg4 = util::LabelFactory::createLegendWithOffset(2,0.175);
-      leg4->AddEntry(ratio,"Measured Ratio","P");
-      leg4->AddEntry(hint,"Constant Fit","LF");
-      // leg4->AddEntry(extrapolated_data_with_pli,"Data resolution","P");
+         TLegend* leg4 = util::LabelFactory::createLegendWithOffset(2,0.175);
+         leg4->AddEntry(ratio,"Measured Ratio","P");
+         leg4->AddEntry(hint,"Constant Fit","LF");
+         leg4->Draw("same");
 
-      leg4->Draw("same");
+         TString name3;
+         name3 = Form("Extrapolation/ExtrapolRatio_Eta%i" + suffix + ".eps", ieta);
+         c3->Print(name3);
+         // --------------------- //
 
-      TString name3;
-      name3 = Form("Extrapolation/ExtrapolRatio_Eta%i" + suffix + ".eps", ieta);
-      c3->Print(name3);
+         // fit ratio with pli correction
+         ratio_with_pli->Fit("fit_const", "", "same");
+         ratio_with_pli->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
+         ratio_with_pli->GetYaxis()->SetRangeUser(0.8, 2.0);
+         ratio_with_pli->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
 
-      ratio_with_pli->Fit("fit_const", "", "same");
-      ratio_with_pli->GetXaxis()->SetTitle("p_{T}^{ave} [GeV]");
-      ratio_with_pli->GetYaxis()->SetRangeUser(0.8, 2.0);
-      ratio_with_pli->GetYaxis()->SetTitle("Data/MC ratio (const fit)");
+         RatioVsEta_with_pli->SetBinContent(ieta+1, ratio_with_pli->GetFunction("fit_const")->GetParameter(0));
+         RatioVsEta_with_pli->SetBinError(ieta+1, ratio_with_pli->GetFunction("fit_const")->GetParError(0));
 
-      RatioVsEta_with_pli->SetBinContent(ieta+1, ratio_with_pli->GetFunction("fit_const")->GetParameter(0));
-      RatioVsEta_with_pli->SetBinError(ieta+1, ratio_with_pli->GetFunction("fit_const")->GetParError(0));
+         chi2_const = fit_const->GetChisquare();
+         ndf_const = fit_const->GetNDF();
+         fit_qual = chi2_const/ndf_const;
 
-      (TVirtualFitter::GetFitter())->GetConfidenceIntervals(hint, 0.68);
+         (TVirtualFitter::GetFitter())->GetConfidenceIntervals(hint, 0.68);
     
-      TCanvas *c3b = new TCanvas("c3","",600,600);
-      c3b->SetLogx();
-      ratio_with_pli->Draw();
-      hint->DrawClone("e4 same");
-      ratio_with_pli->Draw("same");
-      leg4->Draw("same");
+         // --------------------- //
+         // plot ratio with pli correction --> final result
+         TCanvas *c3b = new TCanvas("c3","",600,600);
+         c3b->SetLogx();
+         ratio_with_pli->Draw();
+         hint->DrawClone("e4 same");
+         ratio_with_pli->Draw("same");
+         leg4->Draw("same");
 
-      label->Draw("same");
+         label->Draw("same");
+     
+         TPaveText *labele = util::LabelFactory::createPaveTextWithOffset(1,0.3,0.7);
+         labele->AddText( Form("#chi^{2}/ndf : %0.2f", fit_qual) );
+         labele->Draw("same");
 
-      TString name4;
-      name4 = Form("Extrapolation/ExtrapolRatio_Eta%i_with_pli" + suffix + ".eps", ieta);
-      c3b->Print(name4);
+         ratio_with_pli->Draw("same");
+
+         TString name4;
+         name4 = Form("Extrapolation/ExtrapolRatio_Eta%i_with_pli" + suffix + ".eps", ieta);
+         c3b->Print(name4);
+         // --------------------- //
+      }
    }
 
+   // --------------------- //
    // draw data/mc scaling factors vs. eta
    TCanvas *c4 = new TCanvas();
    RatioVsEta->GetXaxis()->SetRangeUser(0., 5.0);
@@ -1036,7 +1430,9 @@ void Extrapolation()
    RatioVsEta->GetYaxis()->SetTitle("Data /MC ratio (const fit)");
    RatioVsEta->Draw();
    c4->Print("Extrapolation/ScalingFactorsVsEta" + suffix + ".eps");
+   // --------------------- //
 
+   // --------------------- //
    TCanvas *c4b = new TCanvas();
    RatioVsEta_with_pli->GetXaxis()->SetRangeUser(0., 5.0);
    RatioVsEta_with_pli->GetYaxis()->SetRangeUser(0.7, 1.4);
@@ -1044,18 +1440,35 @@ void Extrapolation()
    RatioVsEta_with_pli->GetYaxis()->SetTitle("Data /MC ratio (const fit)");
    RatioVsEta_with_pli->Draw();
    c4b->Print("Extrapolation/ScalingFactorsVsEta_with_pli" + suffix + ".eps");
+   // --------------------- //
 
+   cout << "//----------------------------------------------//" << endl;
+   cout << "Scaling factors without PLI: " << endl;
+   cout << "Ratio eta1: " << RatioVsEta->GetBinContent(1) << " +- " << RatioVsEta->GetBinError(1) << endl;
+   cout << "Ratio eta2: " << RatioVsEta->GetBinContent(2) << " +- " << RatioVsEta->GetBinError(2) << endl;
+   cout << "Ratio eta3: " << RatioVsEta->GetBinContent(3) << " +- " << RatioVsEta->GetBinError(3) << endl;
+   cout << "Ratio eta4: " << RatioVsEta->GetBinContent(4) << " +- " << RatioVsEta->GetBinError(4) << endl;
+   cout << "Ratio eta5: " << RatioVsEta->GetBinContent(5) << " +- " << RatioVsEta->GetBinError(5) << endl;
+   cout << "Ratio eta6: " << RatioVsEta->GetBinContent(6) << " +- " << RatioVsEta->GetBinError(6) << endl;
+   cout << "//----------------------------------------------//" << endl;
+
+   cout << "//----------------------------------------------//" << endl;
+   cout << "Scaling factors with PLI: " << endl;
    cout << "Ratio eta1: " << RatioVsEta_with_pli->GetBinContent(1) << " +- " << RatioVsEta_with_pli->GetBinError(1) << endl;
    cout << "Ratio eta2: " << RatioVsEta_with_pli->GetBinContent(2) << " +- " << RatioVsEta_with_pli->GetBinError(2) << endl;
    cout << "Ratio eta3: " << RatioVsEta_with_pli->GetBinContent(3) << " +- " << RatioVsEta_with_pli->GetBinError(3) << endl;
    cout << "Ratio eta4: " << RatioVsEta_with_pli->GetBinContent(4) << " +- " << RatioVsEta_with_pli->GetBinError(4) << endl;
    cout << "Ratio eta5: " << RatioVsEta_with_pli->GetBinContent(5) << " +- " << RatioVsEta_with_pli->GetBinError(5) << endl;
+   cout << "Ratio eta6: " << RatioVsEta_with_pli->GetBinContent(6) << " +- " << RatioVsEta_with_pli->GetBinError(6) << endl;
+   cout << "//----------------------------------------------//" << endl;
 
+   // --------------------- //
+   // write final scaling factors to root file
    TFile* output = new TFile("Extrapolation/JER_RatioVsEta" + suffix + ".root", "RECREATE");
    RatioVsEta_with_pli->Write();
 
    output->Write();
-
+   // --------------------- //
 }
 
 

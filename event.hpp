@@ -87,6 +87,17 @@ struct event{
 
     Float_t         GenEvtScale;
 
+    Float_t         GenPartPt_algo[50];
+    Float_t         GenPartEta_algo[50]; 
+    Float_t         GenPartPhi_algo[50];
+    Float_t         GenPartE_algo[50];
+    Int_t           GenPartId_algo[50];
+    Float_t         GenPartPt_phys[50];
+    Float_t         GenPartEta_phys[50]; 
+    Float_t         GenPartPhi_phys[50];
+    Float_t         GenPartE_phys[50];
+    Int_t           GenPartId_phys[50];
+
 
     // to add events info:
     // 1. add the corresponding data member here

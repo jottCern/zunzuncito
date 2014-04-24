@@ -167,7 +167,7 @@ private:
     std::vector<TH1F*> histos_asymm;
     std::vector<TH1F*> histos_genasymm;
     std::vector<TH1F*> histos_alphaspectrum;
-    
+      
     // those methods define the binning in eta and alpha. They
     // are called from 'start_dataset' and 'process', which are
     // independent of the pt and eta binning.
@@ -176,15 +176,6 @@ private:
     
     int nbins_alpha() const;
     int ibin_alpha(const event & evt) const;
-
-    int nbins_genalpha() const;
-    int ibin_genalpha(const event & evt) const;
-
-    int nbins_genpt() const;
-    int ibin_genpt(const event & evt) const;
-
-    int nbins_geneta() const;
-    int ibin_geneta(const event & evt) const;
 };
 
 // create the response histograms: one for each bin in (ptgen, geneta).
@@ -202,9 +193,8 @@ public:
     
 private:
     std::string dir;
-    std::vector<TH1F*> histos_response;
-    TH2F *ResponseCorr_eta0, *ResponseCorr_eta1, *ResponseCorr_eta2, *ResponseCorr_eta3, *ResponseCorr_eta4;
-    
+    std::vector<TH1F*> histos_response, histos_response_uds, histos_response_c, histos_response_b, histos_response_gluon;
+      
     // those methods define the binning in geneta. They
     // are called from 'start_dataset' and 'process', which are
     // independent of the pt and eta binning.
@@ -254,13 +244,19 @@ public:
 
 private:
     std::string suffix, dir;
-    TH1F* NVtx_HltDiPFJetAve40, *Jet1Pt_HltDiPFJetAve40, *Jet2Pt_HltDiPFJetAve40, *Jet3Pt_HltDiPFJetAve40, *GenJet1Pt_HltDiPFJetAve40, *GenJet2Pt_HltDiPFJetAve40, *GenJet3Pt_HltDiPFJetAve40, *PtAve_HltDiPFJetAve40, *GenPtAve_HltDiPFJetAve40, *Alpha_HltDiPFJetAve40, *GenAlpha_HltDiPFJetAve40, *DeltaPhi_HltDiPFJetAve40;
-    TH1F* NVtx_HltDiPFJetAve80, *Jet1Pt_HltDiPFJetAve80, *Jet2Pt_HltDiPFJetAve80, *Jet3Pt_HltDiPFJetAve80, *GenJet1Pt_HltDiPFJetAve80, *GenJet2Pt_HltDiPFJetAve80, *GenJet3Pt_HltDiPFJetAve80, *PtAve_HltDiPFJetAve80, *GenPtAve_HltDiPFJetAve80, *Alpha_HltDiPFJetAve80, *GenAlpha_HltDiPFJetAve80, *DeltaPhi_HltDiPFJetAve80;
-    TH1F* NVtx_HltDiPFJetAve140, *Jet1Pt_HltDiPFJetAve140, *Jet2Pt_HltDiPFJetAve140, *Jet3Pt_HltDiPFJetAve140, *GenJet1Pt_HltDiPFJetAve140, *GenJet2Pt_HltDiPFJetAve140, *GenJet3Pt_HltDiPFJetAve140, *PtAve_HltDiPFJetAve140, *GenPtAve_HltDiPFJetAve140, *Alpha_HltDiPFJetAve140, *GenAlpha_HltDiPFJetAve140, *DeltaPhi_HltDiPFJetAve140;
-    TH1F* NVtx_HltDiPFJetAve200, *Jet1Pt_HltDiPFJetAve200, *Jet2Pt_HltDiPFJetAve200, *Jet3Pt_HltDiPFJetAve200, *GenJet1Pt_HltDiPFJetAve200, *GenJet2Pt_HltDiPFJetAve200, *GenJet3Pt_HltDiPFJetAve200, *PtAve_HltDiPFJetAve200, *GenPtAve_HltDiPFJetAve200, *Alpha_HltDiPFJetAve200, *GenAlpha_HltDiPFJetAve200, *DeltaPhi_HltDiPFJetAve200;
-    TH1F* NVtx_HltDiPFJetAve260, *Jet1Pt_HltDiPFJetAve260, *Jet2Pt_HltDiPFJetAve260, *Jet3Pt_HltDiPFJetAve260, *GenJet1Pt_HltDiPFJetAve260, *GenJet2Pt_HltDiPFJetAve260, *GenJet3Pt_HltDiPFJetAve260, *PtAve_HltDiPFJetAve260, *GenPtAve_HltDiPFJetAve260, *Alpha_HltDiPFJetAve260, *GenAlpha_HltDiPFJetAve260, *DeltaPhi_HltDiPFJetAve260;
-    TH1F* NVtx_HltDiPFJetAve320, *Jet1Pt_HltDiPFJetAve320, *Jet2Pt_HltDiPFJetAve320, *Jet3Pt_HltDiPFJetAve320, *GenJet1Pt_HltDiPFJetAve320, *GenJet2Pt_HltDiPFJetAve320, *GenJet3Pt_HltDiPFJetAve320, *PtAve_HltDiPFJetAve320, *GenPtAve_HltDiPFJetAve320, *Alpha_HltDiPFJetAve320, *GenAlpha_HltDiPFJetAve320, *DeltaPhi_HltDiPFJetAve320;
-    TH1F* NVtx_HltDiPFJetAve400, *Jet1Pt_HltDiPFJetAve400, *Jet2Pt_HltDiPFJetAve400, *Jet3Pt_HltDiPFJetAve400, *GenJet1Pt_HltDiPFJetAve400, *GenJet2Pt_HltDiPFJetAve400, *GenJet3Pt_HltDiPFJetAve400, *PtAve_HltDiPFJetAve400, *GenPtAve_HltDiPFJetAve400, *Alpha_HltDiPFJetAve400, *GenAlpha_HltDiPFJetAve400, *DeltaPhi_HltDiPFJetAve400;
+   TH1F* NVtx_HltDiPFJetAve40, *Jet1Pt_HltDiPFJetAve40, *Jet2Pt_HltDiPFJetAve40, *Jet3Pt_HltDiPFJetAve40, *Jet1Eta_HltDiPFJetAve40, *Jet2Eta_HltDiPFJetAve40, *Jet3Eta_HltDiPFJetAve40, *GenJet1Pt_HltDiPFJetAve40, *GenJet2Pt_HltDiPFJetAve40, *GenJet3Pt_HltDiPFJetAve40, *PtAve_HltDiPFJetAve40, *GenPtAve_HltDiPFJetAve40, *Alpha_HltDiPFJetAve40, *GenAlpha_HltDiPFJetAve40, *DeltaPhi_HltDiPFJetAve40;
+
+   TH1F* NVtx_HltDiPFJetAve80, *Jet1Pt_HltDiPFJetAve80, *Jet2Pt_HltDiPFJetAve80, *Jet3Pt_HltDiPFJetAve80, *Jet1Eta_HltDiPFJetAve80, *Jet2Eta_HltDiPFJetAve80, *Jet3Eta_HltDiPFJetAve80, *GenJet1Pt_HltDiPFJetAve80, *GenJet2Pt_HltDiPFJetAve80, *GenJet3Pt_HltDiPFJetAve80, *PtAve_HltDiPFJetAve80, *GenPtAve_HltDiPFJetAve80, *Alpha_HltDiPFJetAve80, *GenAlpha_HltDiPFJetAve80, *DeltaPhi_HltDiPFJetAve80;
+
+   TH1F* NVtx_HltDiPFJetAve140, *Jet1Pt_HltDiPFJetAve140, *Jet2Pt_HltDiPFJetAve140, *Jet3Pt_HltDiPFJetAve140, *Jet1Eta_HltDiPFJetAve140, *Jet2Eta_HltDiPFJetAve140, *Jet3Eta_HltDiPFJetAve140, *GenJet1Pt_HltDiPFJetAve140, *GenJet2Pt_HltDiPFJetAve140, *GenJet3Pt_HltDiPFJetAve140, *PtAve_HltDiPFJetAve140, *GenPtAve_HltDiPFJetAve140, *Alpha_HltDiPFJetAve140, *GenAlpha_HltDiPFJetAve140, *DeltaPhi_HltDiPFJetAve140;
+
+    TH1F* NVtx_HltDiPFJetAve200, *Jet1Pt_HltDiPFJetAve200, *Jet2Pt_HltDiPFJetAve200, *Jet3Pt_HltDiPFJetAve200,*Jet1Eta_HltDiPFJetAve200, *Jet2Eta_HltDiPFJetAve200, *Jet3Eta_HltDiPFJetAve200, *GenJet1Pt_HltDiPFJetAve200, *GenJet2Pt_HltDiPFJetAve200, *GenJet3Pt_HltDiPFJetAve200, *PtAve_HltDiPFJetAve200, *GenPtAve_HltDiPFJetAve200, *Alpha_HltDiPFJetAve200, *GenAlpha_HltDiPFJetAve200, *DeltaPhi_HltDiPFJetAve200;
+
+   TH1F* NVtx_HltDiPFJetAve260, *Jet1Pt_HltDiPFJetAve260, *Jet2Pt_HltDiPFJetAve260, *Jet3Pt_HltDiPFJetAve260, *Jet1Eta_HltDiPFJetAve260, *Jet2Eta_HltDiPFJetAve260, *Jet3Eta_HltDiPFJetAve260, *GenJet1Pt_HltDiPFJetAve260, *GenJet2Pt_HltDiPFJetAve260, *GenJet3Pt_HltDiPFJetAve260, *PtAve_HltDiPFJetAve260, *GenPtAve_HltDiPFJetAve260, *Alpha_HltDiPFJetAve260, *GenAlpha_HltDiPFJetAve260, *DeltaPhi_HltDiPFJetAve260;
+
+   TH1F* NVtx_HltDiPFJetAve320, *Jet1Pt_HltDiPFJetAve320, *Jet2Pt_HltDiPFJetAve320, *Jet3Pt_HltDiPFJetAve320, *Jet1Eta_HltDiPFJetAve320, *Jet2Eta_HltDiPFJetAve320, *Jet3Eta_HltDiPFJetAve320, *GenJet1Pt_HltDiPFJetAve320, *GenJet2Pt_HltDiPFJetAve320, *GenJet3Pt_HltDiPFJetAve320, *PtAve_HltDiPFJetAve320, *GenPtAve_HltDiPFJetAve320, *Alpha_HltDiPFJetAve320, *GenAlpha_HltDiPFJetAve320, *DeltaPhi_HltDiPFJetAve320;
+
+   TH1F* NVtx_HltDiPFJetAve400, *Jet1Pt_HltDiPFJetAve400, *Jet2Pt_HltDiPFJetAve400, *Jet3Pt_HltDiPFJetAve400, *Jet1Eta_HltDiPFJetAve400, *Jet2Eta_HltDiPFJetAve400, *Jet3Eta_HltDiPFJetAve400, *GenJet1Pt_HltDiPFJetAve400, *GenJet2Pt_HltDiPFJetAve400, *GenJet3Pt_HltDiPFJetAve400, *PtAve_HltDiPFJetAve400, *GenPtAve_HltDiPFJetAve400, *Alpha_HltDiPFJetAve400, *GenAlpha_HltDiPFJetAve400, *DeltaPhi_HltDiPFJetAve400;
 };
 
 // use only reasonable MC events --> remove events with large weight and large response
@@ -303,6 +299,21 @@ public:
 
 private:
     TF1 *f;
+};
+
+// reweight MC events depending on gluon splitting 
+class gluonsplittingreweighting: public module {
+public:
+    virtual void start_dataset(const dataset & d, TFile & outfile);
+    virtual bool process(event & evt);
+    virtual ~gluonsplittingreweighting();
+    
+    virtual std::string name(){
+       return "reweight mc events depending on gluon splitting";
+    }
+
+private:
+   TH1F *splitting_fraction_before, *splitting_fraction_after;
 };
 
 #endif

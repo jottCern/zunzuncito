@@ -187,12 +187,13 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
 
       TCanvas *c = new TCanvas();
       c->SetLogy();
-      // c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
-      // c->cd();
+      c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
+      c->cd();
       //  tmp_data->Rebin(100);
-      tmp_data->GetXaxis()->SetTitle(xTitle);
+      // tmp_data->GetXaxis()->SetTitle(xTitle);
+      tmp_data->GetXaxis()->SetLabelSize(0);
       tmp_data->GetYaxis()->SetTitle("Events");
-      tmp_data->GetYaxis()->SetRangeUser(0.5, 15* tmp_data->GetMaximum() );
+      tmp_data->GetYaxis()->SetRangeUser(0.5, 10000* tmp_data->GetMaximum() );
       tmp_data->SetMarkerStyle(20);
       tmp_data->SetMarkerColor(kBlack);
       tmp_data->Draw();
@@ -206,7 +207,7 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
       
       TPaveText *label = util::LabelFactory::createPaveTextWithOffset(1, 1.0, 0.01);
       if(i == 6) label->AddText(trigger[i] + ", "  + pt_bins[i] + " #leq p_{T}^{ave} [GeV] ");
-      else label->AddText(trigger[i] + ", "  + pt_bins[i] + " #leq p_{T}^{ave} [GeV] " + pt_bins[i+1]);
+      else label->AddText(trigger[i] + ", "  + pt_bins[i] + " #leq p_{T}^{ave} [GeV] #leq " + pt_bins[i+1]);
       label->Draw("same");
       
       TLegend* leg1 = util::LabelFactory::createLegendColWithOffset(2,0.4,0.11);
@@ -217,42 +218,44 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
       //  tmp_data->Draw("same");
       //tmp_mc->Draw("samehist");
 
-    //   TPad *pad = new TPad("pad", "pad", 0, 0, 1, 1);
-//       pad->SetTopMargin(0.75 - 0.75*pad->GetBottomMargin()+0.25*pad->GetTopMargin());
-//       pad->SetFillStyle(0);
-//       pad->SetFrameFillColor(10);
-//       pad->SetFrameBorderMode(0);
-//       pad->Draw();
-//       pad->cd();
+      TPad *pad = new TPad("pad", "pad", 0, 0, 1, 1);
+      pad->SetTopMargin(0.75 - 0.75*pad->GetBottomMargin()+0.25*pad->GetTopMargin());
+      pad->SetFillStyle(0);
+      pad->SetFrameFillColor(10);
+      pad->SetFrameBorderMode(0);
+      pad->Draw();
+      pad->cd();
 
-//       Double_t xMin1 = tmp_data->GetXaxis()->GetXmin();
-//       Double_t xMax1 = tmp_data->GetXaxis()->GetXmax();
+      Double_t xMin1 = tmp_data->GetXaxis()->GetXmin();
+      Double_t xMax1 = tmp_data->GetXaxis()->GetXmax();
 
-//       TH1F* r = new TH1F(*tmp_data);
-//       r->Sumw2();
-//       r->SetXTitle(xTitle);
-//       r->GetYaxis()->CenterTitle();
-//       r->SetYTitle("(Data-MC)/Data");
-//       r->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
-//       r->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
-//       r->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
-//       r->GetYaxis()->SetNdivisions(505);
-//       r->SetStats(0);
-//       r->SetMarkerStyle(20);
-//       //      r->SetMarkerSize(1.12);
-//       r->SetMarkerColor(kBlack);
-//       r->Reset();
-//       r->Add(tmp_data, 1);
-//       r->Add(tmp_mc, -1);
-//       r->Divide(tmp_data);
-//       r->SetMaximum(0.5);
-//       r->SetMinimum(-0.5);
-//       r->Draw("ep");
-//       TLine l;
-//       l.DrawLine(xMin1, 0., xMax1, 0.);
-//       c->cd(); // 
+      TH1F* r = new TH1F(*tmp_data);
+      r->Sumw2();
+      r->SetXTitle(xTitle);
+      r->GetYaxis()->CenterTitle();
+      r->SetYTitle("(Data-MC)/Data");
+      r->GetXaxis()->SetLabelSize(gStyle->GetLabelSize("X"));
+      r->GetYaxis()->SetLabelOffset(gStyle->GetLabelOffset("Y"));
+      r->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/0.3);
+      r->GetYaxis()->SetNdivisions(505);
+      r->SetStats(0);
+      r->SetMarkerStyle(20);
+      //      r->SetMarkerSize(1.12);
+      r->SetMarkerColor(kBlack);
+      r->Reset();
+      r->Add(tmp_data, 1);
+      r->Add(tmp_mc, -1);
+      r->Divide(tmp_data);
+      r->SetMaximum(0.5);
+      r->SetMinimum(-0.5);
+      r->Draw("ep");
+      TLine l;
+      l.DrawLine(xMin1, 0., xMax1, 0.);
+      c->cd(); // 
       
       c->Print("ControlPlots/" + histname + ".eps");
+      //c->Print("ControlPlots/ForwardExtension" + histname + ".eps");
+      //c->Print("ControlPlots/Herwig" + histname + ".eps");
 
    }
 }
@@ -264,14 +267,21 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
    TString dummy_name = histoName;
    dummy_name += trigger[0];
    dummy_name += suffix;
-   TH1F *dummy = new TH1F();
-   dummy = (TH1F*) gDirectory->FindObjectAny(dummy_name);
+   jet_file->cd();  
+   TH1F *dummy_data = new TH1F();
+   dummy_data = (TH1F*) gDirectory->FindObjectAny(dummy_name);
+   mc_file->cd(); 
+   TH1F *dummy_mc = new TH1F();
+   dummy_mc = (TH1F*) gDirectory->FindObjectAny(dummy_name);
+   // TH1F *dummy_gen = new TH1F();
+   //dummy_gen = (TH1F*) gDirectory->FindObjectAny("Gen" + dummy_name);
 
-
-   TH1F *tmp_data = new TH1F(*dummy);
+   TH1F *tmp_data = new TH1F(*dummy_data);
    tmp_data->Clear();
-   TH1F *tmp_mc = new TH1F(*dummy);
+   TH1F *tmp_mc = new TH1F(*dummy_mc);
    tmp_mc->Clear();
+   // TH1F *tmp_gen = new TH1F(*dummy_gen);
+   // tmp_gen->Clear();
  
    TString histname;
 
@@ -285,6 +295,7 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       TH1F *tmp_help_data1 = new TH1F();
       TH1F *tmp_help_data2 = new TH1F();
       TH1F *tmp_help_mc = new TH1F();
+      //  TH1F *tmp_help_gen = new TH1F();
 
       if(i < 5){
          jet_file->cd();  
@@ -309,6 +320,12 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       mc_file->cd(); 
       tmp_help_mc = (TH1F*) gDirectory->FindObjectAny(histname);
 
+      //  mc_file->cd(); 
+      //  tmp_help_gen = (TH1F*) gDirectory->FindObjectAny("Gen" + histname);
+
+      // cout << "Data: " << i << "   " << tmp_help_data1->GetEntries()+tmp_help_data2->GetEntries() << endl;
+      //   cout << "MC: " << i << "   " << tmp_mc->GetEntries() << endl;
+
       TH1F *tmp_help_data = new TH1F(*tmp_help_data1);
       tmp_help_data->Clear();
       tmp_help_data->Add(tmp_help_data1);
@@ -316,9 +333,11 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
     
       tmp_help_mc->Scale(tmp_help_data->Integral()/tmp_help_mc->Integral());
 
+      //  tmp_help_gen->Scale(tmp_help_data->Integral()/tmp_help_gen->Integral());
+
       tmp_mc->Add(tmp_help_mc);
       tmp_data->Add(tmp_help_data);
-
+      //   tmp_gen->Add(tmp_help_gen);
    }
 
    if( histname.Contains("Alpha")){
@@ -405,7 +424,7 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       f2->SetParameter(2, 0.1);
 
       f2->SetLineColor(kRed);
-      f2->Draw("same");
+      //  f2->Draw("same");
 
       cout << "Par 0: " << fit->GetParameter(0) << endl; 
       cout << "Par 1: " << fit->GetParameter(1) << endl; 
@@ -418,6 +437,7 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       TString PlotsName = histoName;
       PlotsName += suffix;
       c->Print("ControlPlots/" + PlotsName + ".eps");
+      // c->Print("ControlPlots/Herwig" + PlotsName + ".eps");
       //c->Print("ControlPlots/AfterReweight_"+ PlotsName + ".eps");
 
    }
@@ -428,16 +448,16 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       c->SetLogy();
       // c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
       //c->cd();
-      tmp_data->Rebin(10);
-      tmp_data->GetXaxis()->SetRange(tmp_data->GetXaxis()->GetXmin(), tmp_data->GetXaxis()->GetXmax());
+      //  tmp_data->Rebin(2);
+      //  tmp_data->GetXaxis()->SetRange(tmp_data->GetXaxis()->GetXmin(), tmp_data->GetXaxis()->GetXmax());
       tmp_data->GetXaxis()->SetTitle(xTitle);
       tmp_data->GetYaxis()->SetTitle("Events");
-      tmp_data->GetYaxis()->SetRangeUser(0.5, 35* tmp_data->GetMaximum() );
+      tmp_data->GetYaxis()->SetRangeUser(1.0, 1000* tmp_data->GetMaximum() );
       tmp_data->SetMarkerStyle(20);
       tmp_data->SetMarkerColor(kBlack);
       tmp_data->GetXaxis()->SetNdivisions(505);
       tmp_data->Draw();
-      tmp_mc->Rebin(10);
+      //   tmp_mc->Rebin(2);
       tmp_mc->SetLineColor(38);
       tmp_mc->SetFillColor(38);
       tmp_mc->Draw("samehist");
@@ -457,8 +477,37 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       TString PlotsName = histoName;
       PlotsName += suffix;
       c->Print("ControlPlots/" + PlotsName + ".eps");
+      //c->Print("ControlPlots/Herwig" + PlotsName + ".eps");
+      // c->Print("ControlPlots/ForwardExtension" + PlotsName + ".eps");
    }
 
+   if(histname.Contains("PtAve")) {
+      std::vector<int> pt_bins;
+      pt_bins.push_back(62);
+      pt_bins.push_back(107);
+      pt_bins.push_back(175);
+      pt_bins.push_back(205);
+      pt_bins.push_back(242);
+      pt_bins.push_back(270);
+      pt_bins.push_back(310);
+      pt_bins.push_back(335);
+      pt_bins.push_back(379);
+      pt_bins.push_back(410);
+      pt_bins.push_back(467);
+      pt_bins.push_back(600);
+      pt_bins.push_back(1000);
+      pt_bins.push_back(2000);
+      for(int i = 0; i < 13; i++) {
+         tmp_data->GetXaxis()->SetRangeUser(pt_bins.at(i), pt_bins.at(i+1));
+         std::cout << "data pt: " << pt_bins.at(i) << " - " << pt_bins.at(i+1) << " Mean =  " << tmp_data->GetMean() << std::endl;
+         //std::cout << "data events: " << pt_bins.at(i) << " - " << pt_bins.at(i+1) << " # ev. =  " << tmp_data->GetEntries() << std::endl;
+         tmp_mc->GetXaxis()->SetRangeUser(pt_bins.at(i), pt_bins.at(i+1));
+         std::cout << "mc pt: " << pt_bins.at(i) << " - " << pt_bins.at(i+1) << " Mean =  " << tmp_mc->GetMean() << std::endl;
+         //   std::cout << "mc events: " << pt_bins.at(i) << " - " << pt_bins.at(i+1) << " # ev. =  " << tmp_mc->GetEntries() << std::endl;
+         //    tmp_gen->GetXaxis()->SetRangeUser(pt_bins.at(i), pt_bins.at(i+1));
+         //  std::cout << "gen pt: " << pt_bins.at(i) << " - " << pt_bins.at(i+1) << " Mean =  " << tmp_gen->GetMean() << std::endl;
+      }
+   }
 }
   
 
@@ -468,10 +517,26 @@ void ControlPlots()
    gROOT->ForceStyle();
    
    // input files
-   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_final.root", "READ");
+   /*  TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_final.root", "READ");
    TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_final.root", "READ");
    TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_final.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");*/
+
+
+   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_AddAngularHistos_final.root", "READ");
+   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_AddAngularHistos_final.root", "READ");
+   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_AddAngularHistos_final.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_AddAngularHistos_v3.root", "READ");
+   //  TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_AddAngularHistos_v3.root", "READ");
+   
+
+   /*  TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_ForwardExtension_final_v1.root", "READ");
+   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_ForwardExtension_final_v1.root", "READ");
+   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_ForwardExtension_final_v1.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v1.root", "READ");*/
+
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
+
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_SmearedWithMeasuredValues.root", "READ");
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ReweightAlphaSpectrum.root", "READ");
    
@@ -480,11 +545,17 @@ void ControlPlots()
    //MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "N_{Vtx}", "After Final Selection", "NVtx_", "_AfterAsymmHistos");
 
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T}^{ave} [GeV]", "After Final Selection", "PtAve_", "_AfterAsymmHistos");
-   //  MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 1} [GeV]", "After Final Selection", "Jet1Pt_", "_AfterAsymmHistos");
+   //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 1} [GeV]", "After Final Selection", "Jet1Pt_", "_AfterAsymmHistos");
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 2} [GeV]", "After Final Selection", "Jet2Pt_", "_AfterAsymmHistos");
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 3} [GeV]", "After Final Selection", "Jet3Pt_", "_AfterAsymmHistos");
-   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#alpha", "After Final Selection", "Alpha_", "_AfterAsymmHistos");
-   //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#Delta #phi", "After Final Selection", "DeltaPhi_", "_AfterAsymmHistos");
+   //  MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#alpha", "After Final Selection", "Alpha_", "_AfterAsymmHistos");
+   // MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#Delta #phi", "After Final Selection", "DeltaPhi_", "_AfterAsymmHistos");
+   MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet1}", "After Final Selection", "Jet1Eta_", "_AfterAsymmHistos");
+   MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet2}", "After Final Selection", "Jet2Eta_", "_AfterAsymmHistos");
+   MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet3}", "After Final Selection", "Jet3Eta_", "_AfterAsymmHistos");
+   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet1}", "After Final Selection", "Jet1Eta_", "_AfterAsymmHistos");
+   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet2}", "After Final Selection", "Jet2Eta_", "_AfterAsymmHistos");
+   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet3}", "After Final Selection", "Jet3Eta_", "_AfterAsymmHistos");
 
 
  
@@ -495,6 +566,24 @@ void ControlPlots()
 //          MakePlot_Alpha(jet_file, jetht_file, jetmon_file, mc_file, "#alpha", "After Final Selection", ss, ipt, ieta);
 //       }
 //    }
+
+   /*  for(int ipt = 0; ipt < 13; ++ipt){
+      for(int ieta = 0; ieta < 5; ++ieta){
+         TString ss;
+         ss.Form("AlphaProjectionSpectrum_Pt%i_eta%i", ipt, ieta);
+         MakePlot_Alpha(jet_file, jetht_file, jetmon_file, mc_file, "#alpha_{proj}", "After Final Selection", ss, ipt, ieta);
+
+         TString ss2;
+         ss2.Form("DeltaPhiDijetJ3_Pt%i_eta%i", ipt, ieta);
+         MakePlot_Alpha(jet_file, jetht_file, jetmon_file, mc_file, "#Delta#phi(jet_3, dijet-axis)", "After Final Selection", ss2, ipt, ieta);
+
+         //  TString ss3;
+         //ss3.Form("Alpha_vs_AlphaProjection_Pt%i_eta%i", ipt, ieta);
+         //MakePlot_Alpha(jet_file, jetht_file, jetmon_file, mc_file, "#Delta3phi(jet_3, dijet-axis)", "After Final Selection", ss3, ipt, ieta);
+       }
+       }*/
+
+
         
  
 }

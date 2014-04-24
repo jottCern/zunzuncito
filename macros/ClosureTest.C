@@ -173,17 +173,29 @@ void ClosureTest()
    gROOT->ForceStyle();
 
    // input files
-   TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSecondHalf.root", "READ");
-   //TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSmeared.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf.root", "READ");
+   // TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSecondHalf_v2.root", "READ");
+
+   /* TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
+      TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf_v2.root", "READ");*/
+
+   TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v2.root", "READ");
+
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");
+
+   //TString suffix = "_PythiaSmearedVsPythia";
+   TString suffix = "_HerwigVsPythia";
+   // TString suffix = "_PythiaVsHerwig";
+
  
    // define helper histos
    TH1F *tmp_mcsmeared = new TH1F();
    TH1F *tmp_mc = new TH1F();
+   TH1F *tmp_gensmeared = new TH1F();
    TH1F *tmp_gen = new TH1F();
    tmp_mcsmeared->Sumw2();
    tmp_mc->Sumw2();
+   tmp_gensmeared->Sumw2();
    tmp_gen->Sumw2();
  
    std::vector<float> alpha;
@@ -237,7 +249,7 @@ void ClosureTest()
          //for(int ialpha=0; ialpha < 3; ++ialpha){
             //  cout << "alpha Bin: " << ialpha << endl;
             TString hname = Form("Pt%i_eta%i_alpha%i", ipt, ieta, ialpha);
-            TString hname_gen = Form("GenPt%i_geneta%i_genalpha%i", ipt, ieta, ialpha);
+            TString hname_gen = Form("GenAsymm_Pt%i_eta%i_alpha%i", ipt, ieta, ialpha);
 
             //  cout << "hname: " << hname << endl;
 
@@ -249,7 +261,9 @@ void ClosureTest()
 
             mc_smeared_file->cd();
             tmp_mcsmeared = 0;
+            tmp_gensmeared = 0;
             tmp_mcsmeared = (TH1F*) gDirectory->FindObjectAny(hname);
+            tmp_gensmeared = (TH1F*) gDirectory->FindObjectAny(hname_gen);
                                
             x.push_back(alpha.at(ialpha));
             x_e.push_back(0.);
@@ -267,6 +281,71 @@ void ClosureTest()
             Datay_e.push_back( data_width_err );
             Geny.push_back( gen_width );
             Geny_e.push_back( gen_width_err );
+
+            tmp_mc->Scale(tmp_mcsmeared->Integral()/tmp_mc->Integral());
+            tmp_gen->Scale(tmp_gensmeared->Integral()/tmp_gen->Integral());
+
+            // draw asymmetry histos
+            TCanvas *c5 = new TCanvas("c5", "", 600, 600);
+            c5->SetLogy();
+            //  tmp_mc->GetYaxis()->SetRangeUser(0.1, 100.*tmp_mc->GetMaximum());
+            // tmp_mc->GetXaxis()->SetTitle("(p_{T,1} - p_{T,2})/(p_{T,1} + p_{T,2})");
+            tmp_mc->GetXaxis()->SetTitle("|A|");
+            tmp_mc->GetYaxis()->SetTitle("Events");
+            tmp_mc->SetLineColor(30);
+            //  tmp_mc->SetFillColor(30);
+            tmp_mc->Rebin(10);
+            tmp_mc->Draw("hist");
+            //   gauss_mc->Draw("same");
+            tmp_mcsmeared->Rebin(10);
+            tmp_mcsmeared->SetMarkerStyle(20);
+            tmp_mcsmeared->Draw("histsame");
+          
+            TPaveText *label = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
+            label->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
+            label->Draw("same");
+            
+            TLegend* leg1 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
+            leg1->AddEntry(tmp_mcsmeared,"Herwig","L");
+            leg1->AddEntry(tmp_mc,"Pythia","L");
+            leg1->Draw();
+
+            if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5->Print("ClosureTest/AsymmHistos" + suffix + ".eps(");
+            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5->Print("ClosureTest/AsymmHistos" + suffix + ".eps)");
+            else c5->Print("ClosureTest/AsymmHistos" + suffix + ".eps"); 
+
+            // draw gen-asymmetry histos
+            TCanvas *c5b = new TCanvas("c5b", "", 600, 600);
+            c5b->SetLogy();
+            //  tmp_gen->GetYaxis()->SetRangeUser(0.1, 100.*tmp_gen->GetMaximum());
+            // tmp_gen->GetXaxis()->SetTitle("(p_{T,1} - p_{T,2})/(p_{T,1} + p_{T,2})");
+            tmp_gen->GetXaxis()->SetTitle("|A_{gen}|");
+            tmp_gen->GetYaxis()->SetTitle("Events");
+            tmp_gen->SetLineColor(30);
+            //  tmp_gen->SetFillColor(30);
+            tmp_gen->Rebin(10);
+            tmp_gen->Draw("hist");
+            //   gauss_gen->Draw("same");
+            tmp_gensmeared->Rebin(10);
+            tmp_gensmeared->SetMarkerStyle(20);
+            tmp_gensmeared->Draw("histsame");
+          
+            TPaveText *label2 = util::LabelFactory::createPaveTextWithOffset(3,0.8,0.01);
+            label2->AddText("Anti-k_{T} (R=0.5) PFCHS Jets");
+            label2->AddText( Form("%0.1f #leq |#eta| #leq %0.1f, %3.0f #leq  p_{T}^{ave} [GeV] #leq %3.0f", eta_bins[ieta], eta_bins[ieta+1], pt_bins[ipt], pt_bins[ipt+1]) );
+            label2->AddText( Form("#alpha #leq %0.3f", alpha.at(ialpha)) );
+            label2->Draw("same");
+            
+            TLegend* leg2 = util::LabelFactory::createLegendColWithOffset(2,0.65,0.2);
+            leg2->AddEntry(tmp_gensmeared,"Herwig","L");
+            leg2->AddEntry(tmp_gen,"Pythia","L");
+            leg2->Draw();
+
+            if(ieta == 0 && ipt == 0 && ialpha == 0 ) c5b->Print("ClosureTest/GenAsymmHistos" + suffix + ".eps(");
+            else if(ieta == 4 && ipt == 12 && ialpha == 6) c5b->Print("ClosureTest/GenAsymmHistos" + suffix + ".eps)");
+            else c5b->Print("ClosureTest/GenAsymmHistos" + suffix + ".eps"); 
          }
 
          // Covariance matrices needed for fitting 
@@ -447,7 +526,7 @@ void ClosureTest()
          cmsPrel(-1, false , 8);
 
          TString name;
-         name = Form("ClosureTest/Extrapol_Eta%i_pt%i.eps", ieta, ipt);
+         name = Form("ClosureTest/Extrapol_Eta%i_pt%i" + suffix + ".eps", ieta, ipt);
          c->Print(name);
 
          TCanvas *cb = new TCanvas("c","",600,600);
@@ -477,7 +556,7 @@ void ClosureTest()
          cmsPrel(-1, false , 8);
 
          TString name2;
-         name2 = Form("ClosureTest/Extrapol_Eta%i_pt%i_gen.eps", ieta, ipt);
+         name2 = Form("ClosureTest/Extrapol_Eta%i_pt%i_gen" + suffix + ".eps", ieta, ipt);
          cb->Print(name2);
 
          float par_data = lin_extrapol_data->GetParameter(0);
@@ -547,7 +626,7 @@ void ClosureTest()
       c3->SetLogx();
       ratio->Draw();
       TString name3;
-      name3 = Form("ClosureTest/ExtrapolRatio_Eta%i.eps", ieta);
+      name3 = Form("ClosureTest/ExtrapolRatio_Eta%i" + suffix + ".eps", ieta);
       c3->Print(name3);
 
       ratio_with_pli->Fit("fit_const", "", "same");
@@ -559,7 +638,7 @@ void ClosureTest()
       c3b->SetLogx();
       ratio_with_pli->Draw();
       TString name4;
-      name4 = Form("ClosureTest/ExtrapolRatio_Eta%i_with_pli.eps", ieta);
+      name4 = Form("ClosureTest/ExtrapolRatio_Eta%i_with_pli" + suffix + ".eps", ieta);
       c3b->Print(name4);
 
       RatioVsEta_with_pli->SetBinContent(ieta+1, ratio_with_pli->GetFunction("fit_const")->GetParameter(0));
@@ -573,20 +652,32 @@ void ClosureTest()
    RatioVsEta->GetXaxis()->SetTitle("|#eta|");
    RatioVsEta->GetYaxis()->SetTitle("MC_{smeared} /MC ratio (const fit)");
    RatioVsEta->Draw();
-   c4->Print("ClosureTest/ScalingFactorsVsEta.eps");
+   c4->Print("ClosureTest/ScalingFactorsVsEta" + suffix + ".eps");
+
+   cout << "//----------------------------------------------//" << endl;
+   cout << "Scaling factors without PLI: " << endl;
+   cout << "Ratio eta1: " << RatioVsEta->GetBinContent(1) << " +- " << RatioVsEta->GetBinError(1) << endl;
+   cout << "Ratio eta2: " << RatioVsEta->GetBinContent(2) << " +- " << RatioVsEta->GetBinError(2) << endl;
+   cout << "Ratio eta3: " << RatioVsEta->GetBinContent(3) << " +- " << RatioVsEta->GetBinError(3) << endl;
+   cout << "Ratio eta4: " << RatioVsEta->GetBinContent(4) << " +- " << RatioVsEta->GetBinError(4) << endl;
+   cout << "Ratio eta5: " << RatioVsEta->GetBinContent(5) << " +- " << RatioVsEta->GetBinError(5) << endl;
+   cout << "//----------------------------------------------//" << endl;
 
    TCanvas *c4b = new TCanvas();
    RatioVsEta_with_pli->GetYaxis()->SetRangeUser(0.7, 1.4);
    RatioVsEta_with_pli->GetXaxis()->SetTitle("|#eta|");
    RatioVsEta_with_pli->GetYaxis()->SetTitle("MC_{smeared} /MC ratio (const fit)");
    RatioVsEta_with_pli->Draw();
-   c4b->Print("ClosureTest/ScalingFactorsVsEta_with_pli.eps");
+   c4b->Print("ClosureTest/ScalingFactorsVsEta_with_pli" + suffix + ".eps");
 
+   cout << "//----------------------------------------------//" << endl;
+   cout << "Scaling factors with PLI: " << endl;
    cout << "Ratio eta1: " << RatioVsEta_with_pli->GetBinContent(1) << " +- " << RatioVsEta_with_pli->GetBinError(1) << endl;
    cout << "Ratio eta2: " << RatioVsEta_with_pli->GetBinContent(2) << " +- " << RatioVsEta_with_pli->GetBinError(2) << endl;
    cout << "Ratio eta3: " << RatioVsEta_with_pli->GetBinContent(3) << " +- " << RatioVsEta_with_pli->GetBinError(3) << endl;
    cout << "Ratio eta4: " << RatioVsEta_with_pli->GetBinContent(4) << " +- " << RatioVsEta_with_pli->GetBinError(4) << endl;
    cout << "Ratio eta5: " << RatioVsEta_with_pli->GetBinContent(5) << " +- " << RatioVsEta_with_pli->GetBinError(5) << endl;
+   cout << "//----------------------------------------------//" << endl;
 
 }
 
