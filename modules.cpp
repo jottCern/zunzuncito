@@ -257,7 +257,7 @@ bool eventcuts::process(event & evt){
 
    // 2. (corrected) jets relevant for the analysis must fulfill loose JetID
    if(!(evt.JetIDLoose[0] && evt.JetIDLoose[1])) return false;
-   //  if(evt.NobjJet > 2 && !evt.JetIDLoose[2]) return false;
+   if(evt.NobjJet > 2 && !evt.JetIDLoose[2]) return false;
 
    // 3. select DiJet-like structure
    float deltaPhi =  fabs( evt.JetPhi[0] - evt.JetPhi[1] );
@@ -396,13 +396,15 @@ bool smearmc::process(event & evt){
 
 float smearmc::getsmearfactor(float eta)
 {
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f}; // eta bins defining smearfactors
+   // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f}; // eta bins defining smearfactors
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 2.8f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    // const float smearval[] = {1.080, 1.103, 1.124, 1.222, 1.206};
    // const float smearval[] = {1.0769, 1.0998, 1.1185, 1.205, 1.191};
-   const float smearval[] = {1.0905, 1.1072, 1.1171, 1.2967, 1.1217};
-   //const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1};
-   //const float smearval[] = {1, 1, 1, 1, 1};
+   // const float smearval[] = {1.0769, 1.0998, 1.1185, 1.205, 1.145, 1.0, 1.0};
+   // const float smearval[] = {1.0905, 1.1072, 1.1171, 1.2967, 1.1217};
+   const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1};
+   // const float smearval[] = {1, 1, 1, 1, 1};
 
    for(int ieta = 0; ieta < neta; ++ieta){
       float eta_hi = eta_high[ieta];
@@ -854,40 +856,48 @@ asymm_histos::asymm_histos(const boost::shared_ptr<pt_binning> & binning, const 
 }
 
 int asymm_histos::nbins_eta() const{
-   return 6;
+   // return 6;
+   return 7;
 }
 
 int asymm_histos::ibin_eta(const event & evt) const{
    if(evt.NobjJet < 2) return -1; 
    float eta0 = abs(evt.JetEta[0]);
    float eta1 = abs(evt.JetEta[1]);
-   //  const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
+   // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 2.8f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
       // both the leading and the sub-leading jet must be within the same eta bin extending from eta_lo to eta_hi:
-      float eta_hi = eta_high[ieta];
+      /*float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
-      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;
+      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;*/
 
       // one jet has to be in the central eta bin, the other jet can be in any other
-      /* float eta_hi = eta_high[ieta];
+      /*float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
       if( (eta0 < 0.5f and eta1 >= eta_lo and eta1 < eta_hi ) || 
       (eta0 >= eta_lo and eta0 < eta_hi and eta1 < 0.5f )) return ieta;*/
 
       // one jet has to be in the next-to-central eta bin, the other jet can be in any other
-      /* float eta_hi = eta_high[ieta];
+      /*float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
       if( (eta0 >= 0.5f and eta0 < 1.1f and eta1 >= eta_lo and eta1 < eta_hi ) || 
       (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 0.5f and eta1 < 1.1f )) return ieta;*/
+
+      // one jet has to be in the second-next-to-central eta bin, the other jet can be in any other
+      float eta_hi = eta_high[ieta];
+      float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
+      if( (eta0 >= 1.1f and eta0 < 1.7f and eta1 >= eta_lo and eta1 < eta_hi ) || 
+      (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 1.1f and eta1 < 1.7f )) return ieta;
    }
    return -1;
 }
    
 int asymm_histos::nbins_alpha() const{
    return 8;
-   //return 9;
+   // return 9;
 }
 
 int asymm_histos::ibin_alpha(const event & evt) const{
@@ -898,7 +908,7 @@ int asymm_histos::ibin_alpha(const event & evt) const{
       alpha = evt.JetPt[2] / (0.5f * (evt.JetPt[0] + evt.JetPt[1]));
    }
    const float alpha_min[] = {0.0f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
-   //const float alpha_min[] = {0.0f, 0.05f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
+   // const float alpha_min[] = {0.0f, 0.05f, 0.1f, 0.125f, 0.15f, 0.175f, 0.20f, 0.225f, 0.25f}; // lower bin borders of alpha binning
    const int nalpha = sizeof(alpha_min) / sizeof(float);
    // find the bin index in alpha for this event. The last bin extends to +infinity implicitly
    for(int ialpha=0; ialpha < nalpha; ++ialpha){
@@ -915,6 +925,8 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
    // clear the histograms from previous dataset:
    histos_asymm.clear();
    histos_genasymm.clear();
+   histos_asymm_forward.clear();
+   histos_genasymm_forward.clear();
    histos_alphaspectrum.clear();
  
    // create all histograms in the output file:
@@ -929,25 +941,37 @@ void asymm_histos::start_dataset(const dataset & d, TFile & outfile){
    const int n_eta = nbins_eta();
    for(int ipt=0; ipt<n_pt; ++ipt){
       for(int ieta=0; ieta < n_eta; ++ieta){
-         stringstream ss2;
-         ss2 << "AlphaSpectrum_Pt" << ipt << "_eta" << ieta;
-         TH1F *tmp_alpha = new TH1F(ss2.str().c_str(), ss2.str().c_str(), 1000, 0.0, 1.0);
+         stringstream ss;
+         ss << "AlphaSpectrum_Pt" << ipt << "_eta" << ieta;
+         TH1F *tmp_alpha = new TH1F(ss.str().c_str(), ss.str().c_str(), 1000, 0.0, 1.0);
          tmp_alpha->Sumw2();
          histos_alphaspectrum.push_back(tmp_alpha);
 
          for(int ialpha=0; ialpha < n_alpha; ++ialpha){
-            stringstream ss;
-            ss << "Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
-            TH1F *tmp = new TH1F(ss.str().c_str(), ss.str().c_str(), 1000, 0.0, 1.0);
+            stringstream ss2;
+            ss2 << "Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
+            TH1F *tmp = new TH1F(ss2.str().c_str(), ss2.str().c_str(), 1000, 0.0, 1.0);
             tmp->Sumw2();
             histos_asymm.push_back(tmp);
 
+            stringstream ss3;
+            ss3 << "Forward_Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
+            TH1F *tmp2 = new TH1F(ss3.str().c_str(), ss3.str().c_str(), 2000, -1.0, 1.0);
+            tmp2->Sumw2();
+            histos_asymm_forward.push_back(tmp2);
+
             if(d.mc){
-               stringstream ss2;
-               ss2 << "GenAsymm_Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
-               TH1F *tmp2 = new TH1F(ss2.str().c_str(), ss2.str().c_str(), 1000, 0.0, 1.0);
-               tmp2->Sumw2();
-               histos_genasymm.push_back(tmp2);
+               stringstream ss4;
+               ss4 << "GenAsymm_Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
+               TH1F *tmp3 = new TH1F(ss4.str().c_str(), ss4.str().c_str(), 1000, 0.0, 1.0);
+               tmp3->Sumw2();
+               histos_genasymm.push_back(tmp3);
+
+               stringstream ss5;
+               ss5 << "Forward_GenAsymm_Pt" << ipt << "_eta" << ieta << "_alpha" << ialpha;
+               TH1F *tmp4 = new TH1F(ss5.str().c_str(), ss5.str().c_str(), 2000, -1.0, 1.0);
+               tmp4->Sumw2();
+               histos_genasymm_forward.push_back(tmp4);
             }
          }
       }
@@ -970,7 +994,7 @@ bool asymm_histos::process(event & evt){
     
    const int n_eta = nbins_eta();
    const int n_alpha = nbins_alpha();
-  
+      
    // fill histos with alpha spectrum
    float alpha = 0.0;
    // if there is a third jet --> third jet pt should not be too small
@@ -980,20 +1004,34 @@ bool asymm_histos::process(event & evt){
    int histo_index_alpha = (ptbin * n_eta) + etabin;
    histos_alphaspectrum[histo_index_alpha]->Fill(alpha, evt.Weight);
  
-   // fill asymmetry histos inclusive in alpha
+   // standard asymmetry
    float asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
    // asymmetry defined that way should always be positive, if the pt-sorting was right:
    assert(asymmetry >= 0.0f);
+
+   // use forward jet always as first jet
+   float forward_asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
+   float forward_genasymmetry = (evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
+   // if(abs(evt.JetEta[0]) < 0.5f) {
+   // if(abs(evt.JetEta[0]) >= 0.5f && abs(evt.JetEta[0]) < 1.1f) {
+   if(abs(evt.JetEta[0]) >= 1.1f && abs(evt.JetEta[0]) < 1.7f) {
+      forward_asymmetry = (evt.JetPt[1] - evt.JetPt[0]) / (evt.JetPt[0] + evt.JetPt[1]);
+      forward_genasymmetry = (evt.GenJetPt[1] - evt.GenJetPt[0]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
+   }
+
+   // fill asymmetry histos inclusive in alpha
    for(int i = 0; i < n_alpha-alphabin; i++) {
       int histo_index = ptbin * (n_eta * n_alpha) + etabin * n_alpha + (i+alphabin);
       assert(histo_index < int(histos_asymm.size()));
       histos_asymm[histo_index]->Fill(asymmetry, evt.Weight);
+      histos_asymm_forward[histo_index]->Fill(forward_asymmetry, evt.Weight);
       if(evt.is_mc) {
          // -------- used for recopt, recoeta & recoalpha ------- //
          float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
          // genasymmetry defined that way should always be positive
          assert(genasymmetry >= 0.0f);
          histos_genasymm[histo_index]->Fill(genasymmetry, evt.Weight);
+         histos_genasymm_forward[histo_index]->Fill(forward_genasymmetry, evt.Weight);
       }
    }
 
@@ -1021,12 +1059,14 @@ response_histos::response_histos(const std::string & dir_): dir(dir_){
 }
 
 int response_histos::nbins_etagen() const{
-   return 6;
+   // return 6;
+   return 7;
 }
 
 int response_histos::ibin_etagen(const float & eta) const{
-   //   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
-   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
+   // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f};
+   // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 3.2f, 5.2f};
+   const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 2.8f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
       float eta_hi = eta_high[ieta];

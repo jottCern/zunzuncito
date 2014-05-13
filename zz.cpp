@@ -20,7 +20,7 @@ int main(){
     p.add_module(boost::shared_ptr<module>(new jec("/afs/desy.de/user/k/kheine/zunzuncito/jetcorrs", 5)));
     // p.add_module(boost::shared_ptr<module>(new dumper("after JEC", 5)));
     // p.add_module(shared_ptr<module>(new controlplots("AfterJEC")));
-    // p.add_module(boost::shared_ptr<module>(new jec_uncertainty("/afs/desy.de/user/k/kheine/zunzuncito/jetcorrs/FT_53_V21_AN6_Uncertainty_AK5PFchs.txt", syst_dir::down)));
+    // p.add_module(boost::shared_ptr<module>(new jec_uncertainty("/afs/desy.de/user/k/kheine/zunzuncito/jetcorrs/FT_53_V21_AN6_Uncertainty_AK5PFchs.txt", syst_dir::down, 5)));
     // p.add_module(boost::shared_ptr<module>(new dumper("after JEC uncertainty UP", 5)));
     // p.add_module(boost::shared_ptr<module>(new controlplots("AfterJEC")));
     p.add_module(boost::shared_ptr<module>(new reasonablemceventchecker()));
@@ -51,11 +51,23 @@ int main(){
     // dataset jet("Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_final");
     // dataset jet("Jet_ReRecoA_nominal_exclusive_alpha");
     // dataset jet("Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
-    dataset jet("Jet_ReRecoA_nominal_v3");
+    // dataset jet("Jet_ReRecoA_nominal_v3");
+    // dataset jet("Jet_ReRecoA_nominal_v4");
+    // dataset jet("Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jet("Jet_ReRecoA_ForwardExtension_final_v2");
+    // dataset jet("Jet_ReRecoA_ForwardExtension_final_v3");
+    // dataset jet("Jet_ReRecoA_ForwardExtension_final_v4");
     // dataset jet("Jet_ReRecoA_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jet("Jet_ReRecoA_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    // dataset jet("Jet_ReRecoA_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v4");
     // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_final_v1");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_final_v2");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_final_v3");
     // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    /*dataset jet("Jet_ReRecoA_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jet.mc = false;
     jet.jetdata = true;
     jet.jethtdata = false;
@@ -70,11 +82,23 @@ int main(){
     // dataset jetht("JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_final");
     // dataset jetht("JetHT_ReRecoBToD_nominal_exclusive_alpha");
     // dataset jetht("JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
-    dataset jetht("JetHT_ReRecoBToD_nominal_v3");
+    // dataset jetht("JetHT_ReRecoBToD_nominal_v3");
+    // dataset jetht("JetHT_ReRecoBToD_nominal_v4");
+    // dataset jetht("JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jetht("JetHT_ReRecoA_ForwardExtension_final_v2");
+    // dataset jetht("JetHT_ReRecoA_ForwardExtension_final_v3");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtension_final_v4");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v4");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_final_v1");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_final_v2");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_final_v3");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    dataset jetht("JetHT_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jetht.mc = false;
     jetht.jetdata = false;
     jetht.jethtdata = true;
@@ -88,11 +112,23 @@ int main(){
     // dataset jetmon("JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_final");
     // dataset jetmon("JetMon_ReRecoBToD_nominal_exclusive_alpha");
     // dataset jetmon("JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
-    dataset jetmon("JetMon_ReRecoBToD_nominal_v3");
+    // dataset jetmon("JetMon_ReRecoBToD_nominal_v3");
+    // dataset jetmon("JetMon_ReRecoBToD_nominal_v4");
+    // dataset jetmon("JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jetmon("JetMon_ReRecoA_ForwardExtension_final_v2");
+    // dataset jetmon("JetMon_ReRecoA_ForwardExtension_final_v3");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtension_final_v4");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v4");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_final_v1");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_final_v2");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_final_v3");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
+    dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jetmon.mc = false;
     jetmon.jetdata = false;
     jetmon.jethtdata = false;
@@ -100,7 +136,7 @@ int main(){
     jetmon.files = glob(prefix + "*_sam[2 4 6].root");
     //jetmon.nmax = 100000;
     // jetmon.nmax = 0;
-    datasets.push_back(jetmon); 
+    datasets.push_back(jetmon); */
     // -------------------------------- //
   
     // ---- MC ---- //
@@ -116,29 +152,101 @@ int main(){
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v2");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_GluonSplittingReweighting_v2");
 
-    dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v3");
-    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v3");  
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v3"); 
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_MBXS73500_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_JECup_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_JECdown_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightAlphaSpectrum_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightGluonSplitting_v3");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v4"); 
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_MBXS73500_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_JECup_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_JECdown_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightAlphaSpectrum_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightGluonSplitting_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_SmearedWithMeasuredValues_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf_NotSmeared_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSecondHalf_Smeared_v4");
 
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v2");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_MBXS73500_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECup_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECdown_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightAlphaSpectrum_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightGluonSplitting_v2");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_MBXS73500_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECup_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECdown_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightAlphaSpectrum_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightGluonSplitting_v3");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_NoMinPtCutForThirdJet_AddNewAlphaBin_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_MBXS73500_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECup_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_JECdown_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightAlphaSpectrum_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_ReweightGluonSplitting_v4");
 
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_v1");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_MBXS73500_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECup_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECdown_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightAlphaSpectrum_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightGluonSplitting_v2");
 
-    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtension_v2");
-    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_MBXS73500_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECup_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECdown_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightAlphaSpectrum_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightGluonSplitting_v2");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_MBXS73500_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECup_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_JECdown_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightAlphaSpectrum_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionNextToCentral_ReweightGluonSplitting_v3");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtension_v3");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtension_v4");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v2");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v3");
     // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_SmearedWithMeasuredValues_v2");
+    dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionSecondNextToCentral_v1");
 
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_nominal_exclusive_alpha");
+
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_MBXS73500_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_JECup_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_JECdown_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_ReweightAlphaSpectrum_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtensionSecondNextToCentral_ReweightGluonSplitting_v1");
+
     mc.mc = true;
     mc.jetdata = false;
     mc.jethtdata = false;
     mc.jetmondata = false;
-    mc.files = glob("/nfs/dust/test/cms/user/rathjd/Calibration/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1/merged/ak5PFCHS_*.root");
-    // mc.files = glob("/nfs/dust/cms/user/kheine/CalibNTupel/MC/EE3C_herwigpp/Summer12_DR53X_QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp_ak5PFCHS_v2.root");
+    // mc.files = glob("/nfs/dust/cms/user/rathjd/Calibration/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1/merged/ak5PFCHS_*.root");
+    mc.files = glob("/nfs/dust/cms/user/kheine/CalibNTupel/MC/EE3C_herwigpp/Summer12_DR53X_QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp_ak5PFCHS_v2.root");
     // mc.nskip = 4909676;
-    //mc.nmax = 4909675;
-    // mc.nmax = 100;
+    // mc.nmax = 4909675;
+    // mc.nmax = 10000;
     datasets.push_back(mc);
     // -------------------------------- //
     

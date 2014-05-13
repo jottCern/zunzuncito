@@ -108,7 +108,7 @@ public:
     
    // path is the path to the pile-up distributions needed as input: true_mc is folder for true pile-up distributions in mc and pu_data is the measured/observed pu distribution in data per trigger 
    explicit pureweighting(const std::string & path_, const std::string & true_mc_ = "TrueDistributions/", const std::string & pu_data_ = "Cert_2012_190456-208686_ReReco/");
-   //explicit pureweighting(const std::string & path_, const std::string & true_mc_ = "TrueDistributions/", const std::string & pu_data_ = "Cert_2012_190456-208686_ReReco_MBXS73500/");
+   // explicit pureweighting(const std::string & path_, const std::string & true_mc_ = "TrueDistributions/", const std::string & pu_data_ = "Cert_2012_190456-208686_ReReco_MBXS73500/");
    
    virtual void start_dataset(const dataset & d, TFile & outfile);
    virtual bool process(event & evt);
@@ -166,6 +166,8 @@ private:
     std::string dir;
     std::vector<TH1F*> histos_asymm;
     std::vector<TH1F*> histos_genasymm;
+    std::vector<TH1F*> histos_asymm_forward;
+    std::vector<TH1F*> histos_genasymm_forward;
     std::vector<TH1F*> histos_alphaspectrum;
       
     // those methods define the binning in eta and alpha. They

@@ -178,14 +178,17 @@ void ClosureTest()
    /* TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
       TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf_v2.root", "READ");*/
 
-   TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v2.root", "READ");
+   /*TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v4.root", "READ");
+     TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v4.root", "READ");*/
 
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");
 
-   //TString suffix = "_PythiaSmearedVsPythia";
-   TString suffix = "_HerwigVsPythia";
-   // TString suffix = "_PythiaVsHerwig";
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureFirstHalf_NotSmeared_v4.root", "READ");
+     TFile* mc_smeared_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ClosureSecondHalf_Smeared_v4.root", "READ");
+
+   TString suffix = "_PythiaSmearedVsPythia_v4";
+   // TString suffix = "_HerwigVsPythia";
+   // TString suffix = "_PythiaVsHerwig_v4";
 
  
    // define helper histos
@@ -208,15 +211,16 @@ void ClosureTest()
    alpha.push_back(0.25); 
       
    float pt_bins[14] = {62, 107, 175, 205, 242, 270, 310, 335, 379, 410, 467, 600, 1000, 2000};
-   float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.0};
+   // float eta_bins[6] = {0, 0.5, 1.1, 1.7, 2.3, 5.0};
+   float eta_bins[8] = {0, 0.5, 1.1, 1.7, 2.3, 2.8, 3.2, 5.0};
    TH1F *extrapolated_mcsmeared = new TH1F("extrapolated_mcsmeared", "extrapolated_mcsmeared", 13, pt_bins);
    TH1F *extrapolated_mc = new TH1F("extrapolated_mc", "extrapolated_mc", 13, pt_bins);
    TH1F *extrapolated_gen = new TH1F("extrapolated_gen", "extrapolated_gen", 13, pt_bins);
    TH1F *extrapolated_mcsmeared_with_pli = new TH1F("extrapolated_mcsmeared_with_pli", "extrapolated_mcsmeared", 13, pt_bins);
    TH1F *extrapolated_mc_with_pli = new TH1F("extrapolated_mc_with_pli", "extrapolated_mc", 13, pt_bins);
 
-   TH1F* RatioVsEta = new TH1F("RatioVsEta", "", 5, eta_bins);
-   TH1F* RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 5, eta_bins);
+   TH1F* RatioVsEta = new TH1F("RatioVsEta", "", 7, eta_bins);
+   TH1F* RatioVsEta_with_pli = new TH1F("RatioVsEta_with_pli", "", 7, eta_bins);
    extrapolated_mcsmeared->Sumw2();
    extrapolated_mc->Sumw2();
    extrapolated_gen->Sumw2();
@@ -661,6 +665,8 @@ void ClosureTest()
    cout << "Ratio eta3: " << RatioVsEta->GetBinContent(3) << " +- " << RatioVsEta->GetBinError(3) << endl;
    cout << "Ratio eta4: " << RatioVsEta->GetBinContent(4) << " +- " << RatioVsEta->GetBinError(4) << endl;
    cout << "Ratio eta5: " << RatioVsEta->GetBinContent(5) << " +- " << RatioVsEta->GetBinError(5) << endl;
+   cout << "Ratio eta6: " << RatioVsEta->GetBinContent(6) << " +- " << RatioVsEta->GetBinError(6) << endl;
+   cout << "Ratio eta7: " << RatioVsEta->GetBinContent(7) << " +- " << RatioVsEta->GetBinError(7) << endl;
    cout << "//----------------------------------------------//" << endl;
 
    TCanvas *c4b = new TCanvas();
@@ -677,6 +683,8 @@ void ClosureTest()
    cout << "Ratio eta3: " << RatioVsEta_with_pli->GetBinContent(3) << " +- " << RatioVsEta_with_pli->GetBinError(3) << endl;
    cout << "Ratio eta4: " << RatioVsEta_with_pli->GetBinContent(4) << " +- " << RatioVsEta_with_pli->GetBinError(4) << endl;
    cout << "Ratio eta5: " << RatioVsEta_with_pli->GetBinContent(5) << " +- " << RatioVsEta_with_pli->GetBinError(5) << endl;
+   cout << "Ratio eta6: " << RatioVsEta_with_pli->GetBinContent(6) << " +- " << RatioVsEta_with_pli->GetBinError(6) << endl;
+   cout << "Ratio eta7: " << RatioVsEta_with_pli->GetBinContent(7) << " +- " << RatioVsEta_with_pli->GetBinError(7) << endl;
    cout << "//----------------------------------------------//" << endl;
 
 }

@@ -128,7 +128,7 @@ void MakePlot_Alpha(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFil
       TF1 *f = new TF1( *r->GetFunction("fit") );
       f->SetLineColor( kBlue );
       f->SetLineWidth( 0.5 );
-      //  f->Draw("same");
+      //f->Draw("same");
    }     
 
    TF1 *f2 = new TF1("func", "0.5*[0]*(TMath::Erf([1]*x-[2])+1)", 0, 0.3);
@@ -187,11 +187,11 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
 
       TCanvas *c = new TCanvas();
       c->SetLogy();
-      c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
+      // c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
       c->cd();
       //  tmp_data->Rebin(100);
-      // tmp_data->GetXaxis()->SetTitle(xTitle);
-      tmp_data->GetXaxis()->SetLabelSize(0);
+      tmp_data->GetXaxis()->SetTitle(xTitle);
+      //tmp_data->GetXaxis()->SetLabelSize(0);
       tmp_data->GetYaxis()->SetTitle("Events");
       tmp_data->GetYaxis()->SetRangeUser(0.5, 10000* tmp_data->GetMaximum() );
       tmp_data->SetMarkerStyle(20);
@@ -218,7 +218,7 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
       //  tmp_data->Draw("same");
       //tmp_mc->Draw("samehist");
 
-      TPad *pad = new TPad("pad", "pad", 0, 0, 1, 1);
+      /* TPad *pad = new TPad("pad", "pad", 0, 0, 1, 1);
       pad->SetTopMargin(0.75 - 0.75*pad->GetBottomMargin()+0.25*pad->GetTopMargin());
       pad->SetFillStyle(0);
       pad->SetFrameFillColor(10);
@@ -251,10 +251,10 @@ void MakePlot_Trig(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile
       r->Draw("ep");
       TLine l;
       l.DrawLine(xMin1, 0., xMax1, 0.);
-      c->cd(); // 
+      c->cd(); */// 
       
       c->Print("ControlPlots/" + histname + ".eps");
-      //c->Print("ControlPlots/ForwardExtension" + histname + ".eps");
+      // c->Print("ControlPlots/ForwardExtension" + histname + ".eps");
       //c->Print("ControlPlots/Herwig" + histname + ".eps");
 
    }
@@ -343,7 +343,7 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
    if( histname.Contains("Alpha")){
       //   if(  histname.Contains("Bla") ) {
       TCanvas *c = new TCanvas();
-      // c->SetLogx();
+      //c->SetLogx();
       c->SetLogy();
       c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
       c->cd();
@@ -413,9 +413,9 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       TF1 *fit = new TF1("fit","0.5*[0]*(TMath::Erf([1]*x-[2])+1)", 0, 0.3);
       if( TFitResult *res = r->Fit( fit, "R0S" ).Get() ) {
          TF1 *f = new TF1( *r->GetFunction("fit") );
-         f->SetLineColor( kBlue );
-         f->SetLineWidth( 0.5 );
-         //  f->Draw("same");
+         f->SetLineColor( kRed );
+         f->SetLineWidth( 1 );
+         f->Draw("same");
       }     
 
       TF1 *f2 = new TF1("func", "0.5*[0]*(TMath::Erf([1]*x-[2])+1)", 0, 0.3);
@@ -439,25 +439,27 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       c->Print("ControlPlots/" + PlotsName + ".eps");
       // c->Print("ControlPlots/Herwig" + PlotsName + ".eps");
       //c->Print("ControlPlots/AfterReweight_"+ PlotsName + ".eps");
+      //c->Print("ControlPlots/ForwardExtension" + PlotsName + ".eps");
 
    }
 
    else {
       TCanvas *c = new TCanvas();
-      //c->SetLogx();
+      c->SetLogx();
       c->SetLogy();
       // c->SetBottomMargin(0.25 + 0.75*c->GetBottomMargin()-0.25*c->GetTopMargin());
       //c->cd();
-      //  tmp_data->Rebin(2);
-      //  tmp_data->GetXaxis()->SetRange(tmp_data->GetXaxis()->GetXmin(), tmp_data->GetXaxis()->GetXmax());
+      tmp_data->Rebin(4);
+      tmp_data->GetXaxis()->SetRange(tmp_data->GetXaxis()->GetXmin(), tmp_data->GetXaxis()->GetXmax());
+      if(histname.Contains("PtAve")) tmp_data->GetXaxis()->SetRangeUser(62., tmp_data->GetXaxis()->GetXmax());
       tmp_data->GetXaxis()->SetTitle(xTitle);
       tmp_data->GetYaxis()->SetTitle("Events");
       tmp_data->GetYaxis()->SetRangeUser(1.0, 1000* tmp_data->GetMaximum() );
       tmp_data->SetMarkerStyle(20);
       tmp_data->SetMarkerColor(kBlack);
-      tmp_data->GetXaxis()->SetNdivisions(505);
+      //  tmp_data->GetXaxis()->SetNdivisions(505);
       tmp_data->Draw();
-      //   tmp_mc->Rebin(2);
+      tmp_mc->Rebin(4);
       tmp_mc->SetLineColor(38);
       tmp_mc->SetFillColor(38);
       tmp_mc->Draw("samehist");
@@ -476,8 +478,8 @@ void MakePlot(TFile *jet_file, TFile *jetht_file, TFile *jetmon_file, TFile *mc_
       
       TString PlotsName = histoName;
       PlotsName += suffix;
-      c->Print("ControlPlots/" + PlotsName + ".eps");
-      //c->Print("ControlPlots/Herwig" + PlotsName + ".eps");
+      //c->Print("ControlPlots/" + PlotsName + ".eps");
+      c->Print("ControlPlots/Herwig" + PlotsName + ".eps");
       // c->Print("ControlPlots/ForwardExtension" + PlotsName + ".eps");
    }
 
@@ -523,39 +525,46 @@ void ControlPlots()
    TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final.root", "READ");*/
 
 
-   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_AddAngularHistos_final.root", "READ");
-   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_AddAngularHistos_final.root", "READ");
-   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_AddAngularHistos_final.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_AddAngularHistos_v3.root", "READ");
+   // TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_AddAngularHistos_final.root", "READ");
+   // TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_AddAngularHistos_final.root", "READ");
+   // TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_AddAngularHistos_final.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_AddAngularHistos_v3.root", "READ");
    //  TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_AddAngularHistos_v3.root", "READ");
    
 
-   /*  TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_ForwardExtension_final_v1.root", "READ");
-   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_ForwardExtension_final_v1.root", "READ");
-   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_ForwardExtension_final_v1.root", "READ");
-   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v1.root", "READ");*/
+   /*TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoA_ForwardExtension_final_v2.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ForwardExtension_v2.root", "READ");*/
+
+   TFile* jet_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/Jet_ReRecoA_nominal_v4.root", "READ");
+   TFile* jetht_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetHT_ReRecoBToD_nominal_v4.root", "READ");
+   TFile* jetmon_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/JetMon_ReRecoBToD_nominal_v4.root", "READ");
+   // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v4.root", "READ");
+   TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v4.root", "READ");
+
 
    // TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_v2.root", "READ");
 
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_SmearedWithMeasuredValues.root", "READ");
    //TFile* mc_file = new TFile("/afs/desy.de/user/k/kheine/zunzuncito/zz-out/MC_QCD_Pt-15to3000_TuneZ2_Flat_final_ReweightAlphaSpectrum.root", "READ");
    
-   // MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "N_{Vtx}", "Before PU Reweighting", "NVtx_", "_AfterTriggerSelection");
+   //MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "N_{Vtx}", "Before PU Reweighting", "NVtx_", "_AfterTriggerSelection");
    //MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "N_{Vtx}", "After PU Reweighting", "NVtx_", "_AfterPUReweighting");
    //MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "N_{Vtx}", "After Final Selection", "NVtx_", "_AfterAsymmHistos");
 
-   //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T}^{ave} [GeV]", "After Final Selection", "PtAve_", "_AfterAsymmHistos");
+   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T}^{ave} [GeV]", "After Final Selection", "PtAve_", "_AfterAsymmHistos");
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 1} [GeV]", "After Final Selection", "Jet1Pt_", "_AfterAsymmHistos");
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 2} [GeV]", "After Final Selection", "Jet2Pt_", "_AfterAsymmHistos");
    //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "p_{T, 3} [GeV]", "After Final Selection", "Jet3Pt_", "_AfterAsymmHistos");
-   //  MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#alpha", "After Final Selection", "Alpha_", "_AfterAsymmHistos");
+   //MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#alpha", "After Final Selection", "Alpha_", "_AfterAsymmHistos");
    // MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#Delta #phi", "After Final Selection", "DeltaPhi_", "_AfterAsymmHistos");
-   MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet1}", "After Final Selection", "Jet1Eta_", "_AfterAsymmHistos");
+   /*MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet1}", "After Final Selection", "Jet1Eta_", "_AfterAsymmHistos");
    MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet2}", "After Final Selection", "Jet2Eta_", "_AfterAsymmHistos");
    MakePlot_Trig(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet3}", "After Final Selection", "Jet3Eta_", "_AfterAsymmHistos");
    MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet1}", "After Final Selection", "Jet1Eta_", "_AfterAsymmHistos");
    MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet2}", "After Final Selection", "Jet2Eta_", "_AfterAsymmHistos");
-   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet3}", "After Final Selection", "Jet3Eta_", "_AfterAsymmHistos");
+   MakePlot(jet_file, jetht_file, jetmon_file, mc_file, "#eta_{jet3}", "After Final Selection", "Jet3Eta_", "_AfterAsymmHistos");*/
 
 
  
