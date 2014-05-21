@@ -52,7 +52,7 @@ int main(){
     // dataset jet("Jet_ReRecoA_nominal_exclusive_alpha");
     // dataset jet("Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
     // dataset jet("Jet_ReRecoA_nominal_v3");
-    // dataset jet("Jet_ReRecoA_nominal_v4");
+    dataset jet("Jet_ReRecoA_nominal_v4");
     // dataset jet("Jet_ReRecoA_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jet("Jet_ReRecoA_ForwardExtension_final_v2");
     // dataset jet("Jet_ReRecoA_ForwardExtension_final_v3");
@@ -66,7 +66,7 @@ int main(){
     // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
     // dataset jet("Jet_ReRecoA_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
-    /*dataset jet("Jet_ReRecoA_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jet("Jet_ReRecoA_ForwardExtensionSecondNextToCentral_final_v1");
     // dataset jet("Jet_ReRecoA_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jet.mc = false;
     jet.jetdata = true;
@@ -83,7 +83,7 @@ int main(){
     // dataset jetht("JetHT_ReRecoBToD_nominal_exclusive_alpha");
     // dataset jetht("JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
     // dataset jetht("JetHT_ReRecoBToD_nominal_v3");
-    // dataset jetht("JetHT_ReRecoBToD_nominal_v4");
+    dataset jetht("JetHT_ReRecoBToD_nominal_v4");
     // dataset jetht("JetHT_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jetht("JetHT_ReRecoA_ForwardExtension_final_v2");
     // dataset jetht("JetHT_ReRecoA_ForwardExtension_final_v3");
@@ -97,7 +97,7 @@ int main(){
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
-    dataset jetht("JetHT_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
     // dataset jetht("JetHT_ReRecoBToD_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jetht.mc = false;
     jetht.jetdata = false;
@@ -113,7 +113,7 @@ int main(){
     // dataset jetmon("JetMon_ReRecoBToD_nominal_exclusive_alpha");
     // dataset jetmon("JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v3");
     // dataset jetmon("JetMon_ReRecoBToD_nominal_v3");
-    // dataset jetmon("JetMon_ReRecoBToD_nominal_v4");
+    dataset jetmon("JetMon_ReRecoBToD_nominal_v4");
     // dataset jetmon("JetMon_ReRecoBToD_NoMinPtCutForThirdJet_AddNewAlphaBin_nominal_v4");
     // dataset jetmon("JetMon_ReRecoA_ForwardExtension_final_v2");
     // dataset jetmon("JetMon_ReRecoA_ForwardExtension_final_v3");
@@ -127,7 +127,7 @@ int main(){
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v2");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v3");
-    dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
+    // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionSecondNextToCentral_final_v1");
     // dataset jetmon("JetMon_ReRecoBToD_ForwardExtensionSecondNextToCentral_NoMinPtCutForThirdJet_AddNewAlphaBin_final_v1");
     jetmon.mc = false;
     jetmon.jetdata = false;
@@ -136,7 +136,7 @@ int main(){
     jetmon.files = glob(prefix + "*_sam[2 4 6].root");
     //jetmon.nmax = 100000;
     // jetmon.nmax = 0;
-    datasets.push_back(jetmon); */
+    datasets.push_back(jetmon);
     // -------------------------------- //
   
     // ---- MC ---- //
@@ -160,7 +160,7 @@ int main(){
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightAlphaSpectrum_v3");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_ReweightGluonSplitting_v3");
 
-    // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v4");
+    dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_v4");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_NoMinPtCutForThirdJet_AddNewAlphaBin_v4"); 
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_MBXS73500_v4");
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_final_nominal_JECup_v4");
@@ -226,7 +226,7 @@ int main(){
     // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v2");
     // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionNextToCentral_v3");
     // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_SmearedWithMeasuredValues_v2");
-    dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionSecondNextToCentral_v1");
+    // dataset mc("MC_QCD_Pt-15to3000_TuneEE3C_Flat_herwigpp_final_nominal_ForwardExtensionSecondNextToCentral_v1");
 
     // dataset mc("MC_QCD_Pt-15to3000_TuneZ2_Flat_nominal_exclusive_alpha");
 
@@ -242,8 +242,8 @@ int main(){
     mc.jetdata = false;
     mc.jethtdata = false;
     mc.jetmondata = false;
-    // mc.files = glob("/nfs/dust/cms/user/rathjd/Calibration/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1/merged/ak5PFCHS_*.root");
-    mc.files = glob("/nfs/dust/cms/user/kheine/CalibNTupel/MC/EE3C_herwigpp/Summer12_DR53X_QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp_ak5PFCHS_v2.root");
+    mc.files = glob("/nfs/dust/cms/user/rathjd/Calibration/QCD_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6_Summer12_DR53X-PU_S10_START53_V7A-v1/merged/ak5PFCHS_*.root");
+    // mc.files = glob("/nfs/dust/cms/user/kheine/CalibNTupel/MC/EE3C_herwigpp/Summer12_DR53X_QCD_Pt-15to3000_TuneEE3C_Flat_8TeV_herwigpp_ak5PFCHS_v2.root");
     // mc.nskip = 4909676;
     // mc.nmax = 4909675;
     // mc.nmax = 10000;

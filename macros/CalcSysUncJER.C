@@ -205,26 +205,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioPUUp->SetBinContent(i, bin_content_pu);
+         RatioPUUp->SetBinError(i, RatioPUUp->GetBinError(i));
          RatioPUDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioPUDown->SetBinError(i, RatioPUUp->GetBinError(i));
       }
       else if ( diff < 0 ) {
          RatioPUDown->SetBinContent(i, bin_content_pu);
+         RatioPUDown->SetBinError(i, RatioPUUp->GetBinError(i));
          RatioPUUp->SetBinContent(i, bin_content_nominal - diff);
+         RatioPUUp->SetBinError(i, RatioPUUp->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "PU Uncertainty : " << endl;
-   cout << "Eta0 : " << (RatioPUUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioPUUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioPUUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioPUUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioPUUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioPUUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioPUUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioPUUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioPUUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioPUUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioPUUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioPUUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioPUUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioPUUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -251,26 +255,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioAlphaReweightUp->SetBinContent(i, bin_content_alpha);
+         RatioAlphaReweightUp->SetBinError(i, RatioAlphaReweightUp->GetBinError(i));
          RatioAlphaReweightDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioAlphaReweightDown->SetBinError(i, RatioAlphaReweightUp->GetBinError(i));
       }
       else if ( diff < 0 ) {
          RatioAlphaReweightDown->SetBinContent(i, bin_content_alpha);
+         RatioAlphaReweightDown->SetBinError(i, RatioAlphaReweightUp->GetBinError(i));
          RatioAlphaReweightUp->SetBinContent(i, bin_content_nominal - diff);
+         RatioAlphaReweightUp->SetBinError(i, RatioAlphaReweightUp->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "Alpha Spectrum : " << endl;
-   cout << "Eta0 : " << (RatioAlphaReweightUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioAlphaReweightUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioAlphaReweightUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioAlphaReweightUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioAlphaReweightUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioAlphaReweightUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioAlphaReweightUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioAlphaReweightUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioAlphaReweightUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioAlphaReweightUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioAlphaReweightUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioAlphaReweightUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioAlphaReweightUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioAlphaReweightUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -305,26 +313,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioJECDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioJECDown->SetBinError(i, RatioJECDown->GetBinError(i));
          RatioJECUp->SetBinContent(i, bin_content_nominal + diff);
+         RatioJECUp->SetBinError(i, RatioJECUp->GetBinError(i));
       }
       else if( diff < 0) {
          RatioJECDown->SetBinContent(i, bin_content_nominal - TMath::Abs(diff));
+         RatioJECDown->SetBinError(i, RatioJECDown->GetBinError(i));
          RatioJECUp->SetBinContent(i, bin_content_nominal + TMath::Abs(diff));
+         RatioJECUp->SetBinError(i, RatioJECUp->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "JEC : " << endl;
-   cout << "Eta0 : " << (RatioJECUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioJECUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioJECUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioJECUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioJECUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioJECUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioJECUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioJECUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioJECUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioJECUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioJECUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioJECUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioJECUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioJECUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -357,26 +369,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioPLIDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioPLIDown->SetBinError(i, RatioPLIDown->GetBinError(i));
          RatioPLIUp->SetBinContent(i, bin_content_nominal + diff);
+         RatioPLIUp->SetBinError(i, RatioPLIUp->GetBinError(i));
       }
       else if( diff < 0) {
          RatioPLIDown->SetBinContent(i, bin_content_nominal - TMath::Abs(diff));
+         RatioPLIDown->SetBinError(i, RatioPLIDown->GetBinError(i));
          RatioPLIUp->SetBinContent(i, bin_content_nominal + TMath::Abs(diff));
+         RatioPLIUp->SetBinError(i, RatioPLIUp->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "PLI : " << endl;
-   cout << "Eta0 : " << (RatioPLIUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioPLIUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioPLIUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioPLIUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioPLIUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioPLIUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioPLIUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioPLIUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioPLIUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioPLIUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioPLIUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioPLIUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioPLIUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioPLIUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -398,26 +414,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioTailsUp->SetBinContent(i, bin_content_tails);
+         RatioTailsUp->SetBinError(i, RatioTailsDown->GetBinError(i));
          RatioTailsDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioTailsDown->SetBinError(i, RatioTailsDown->GetBinError(i));
       }
       else if ( diff < 0 ) {
          RatioTailsDown->SetBinContent(i, bin_content_tails);
+         RatioTailsDown->SetBinError(i, RatioTailsDown->GetBinError(i));
          RatioTailsUp->SetBinContent(i, bin_content_nominal - diff);
+         RatioTailsUp->SetBinError(i, RatioTailsDown->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "Tail Uncertainty : " << endl;
-   cout << "Eta0 : " << (RatioTailsUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioTailsUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioTailsUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioTailsUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioTailsUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioTailsUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioTailsUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioTailsUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioTailsUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioTailsUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioTailsUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioTailsUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioTailsUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioTailsUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -445,26 +465,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioGluonUp->SetBinContent(i, bin_content_alpha);
+         RatioGluonUp->SetBinError(i, RatioGluonUp->GetBinError(i));
          RatioGluonDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioGluonDown->SetBinError(i, RatioGluonUp->GetBinError(i));
       }
       else if ( diff < 0 ) {
          RatioGluonDown->SetBinContent(i, bin_content_alpha);
+         RatioGluonDown->SetBinError(i, RatioGluonUp->GetBinError(i));
          RatioGluonUp->SetBinContent(i, bin_content_nominal - diff);
+         RatioGluonUp->SetBinError(i, RatioGluonUp->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "Gluon Splitting Reweighting : " << endl;
-   cout << "Eta0 : " << (RatioGluonUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioGluonUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioGluonUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioGluonUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioGluonUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioGluonUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioGluonUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioGluonUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioGluonUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioGluonUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioGluonUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioGluonUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioGluonUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioGluonUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -482,26 +506,30 @@ void CalcSysUncJER()
 
       if( diff > 0 ) {
          RatioAddAlphaUp->SetBinContent(i, bin_content_alpha);
+         RatioAddAlphaUp->SetBinError(i, RatioAddAlphaDown->GetBinError(i));
          RatioAddAlphaDown->SetBinContent(i, bin_content_nominal - diff);
+         RatioAddAlphaDown->SetBinError(i, RatioAddAlphaDown->GetBinError(i));
       }
       else if ( diff < 0 ) {
          RatioAddAlphaDown->SetBinContent(i, bin_content_alpha);
+         RatioAddAlphaDown->SetBinError(i, RatioAddAlphaDown->GetBinError(i));
          RatioAddAlphaUp->SetBinContent(i, bin_content_nominal - diff);
+         RatioAddAlphaUp->SetBinError(i, RatioAddAlphaDown->GetBinError(i));
       }
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "Alpha Range (Add low Alpha-Bin) : " << endl;
-   cout << "Eta0 : " << (RatioAddAlphaUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioAddAlphaUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioAddAlphaUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioAddAlphaUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioAddAlphaUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioAddAlphaUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioAddAlphaUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioAddAlphaUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioAddAlphaUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioAddAlphaUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioAddAlphaUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioAddAlphaUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioAddAlphaUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioAddAlphaUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
 
@@ -515,39 +543,25 @@ void CalcSysUncJER()
       double bin_content_nominal = RatioNominal->GetBinContent(i);
 
       RatioPtTrendUp->SetBinContent(i, bin_content_nominal + 0.02*bin_content_nominal);
+      RatioPtTrendUp->SetBinError(i, RatioNominal->GetBinError(i));
       RatioPtTrendDown->SetBinContent(i, bin_content_nominal - 0.02*bin_content_nominal);
-    
+      RatioPtTrendDown->SetBinError(i, RatioNominal->GetBinError(i));
    }
 
    cout << " // ------------------------------------------------------------------ // " << endl;
    cout << "Pt Trend : " << endl;
-   cout << "Eta0 : " << (RatioPtTrendUp->GetBinContent(1) - RatioNominal->GetBinContent(1))/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << (RatioPtTrendUp->GetBinContent(2) - RatioNominal->GetBinContent(2))/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << (RatioPtTrendUp->GetBinContent(3) - RatioNominal->GetBinContent(3))/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << (RatioPtTrendUp->GetBinContent(4) - RatioNominal->GetBinContent(4))/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << (RatioPtTrendUp->GetBinContent(5) - RatioNominal->GetBinContent(5))/RatioNominal->GetBinContent(5) << endl;
+   cout << "Eta0 : " << (RatioPtTrendUp->GetBinContent(1) - RatioNominal->GetBinContent(1)) << endl;
+   cout << "Eta1 : " << (RatioPtTrendUp->GetBinContent(2) - RatioNominal->GetBinContent(2)) << endl;
+   cout << "Eta2 : " << (RatioPtTrendUp->GetBinContent(3) - RatioNominal->GetBinContent(3)) << endl;
+   cout << "Eta3 : " << (RatioPtTrendUp->GetBinContent(4) - RatioNominal->GetBinContent(4)) << endl;
+   cout << "Eta4 : " << (RatioPtTrendUp->GetBinContent(5) - RatioNominal->GetBinContent(5)) << endl;
    if(use6EtaBins) {
-      cout << "Eta5 : " << (RatioPtTrendUp->GetBinContent(6) - RatioNominal->GetBinContent(6))/RatioNominal->GetBinContent(6) << endl;
+      cout << "Eta5 : " << (RatioPtTrendUp->GetBinContent(6) - RatioNominal->GetBinContent(6)) << endl;
    }
    if(use7EtaBins) {
-      cout << "Eta6 : " << (RatioPtTrendUp->GetBinContent(7) - RatioNominal->GetBinContent(7))/RatioNominal->GetBinContent(7) << endl;
+      cout << "Eta6 : " << (RatioPtTrendUp->GetBinContent(7) - RatioNominal->GetBinContent(7)) << endl;
    }
    cout << " // ------------------------------------------------------------------ // " << endl;
-
-   // ------------------------------------------------------------------ //
-   // remove hist errors for unc. variations
-   for (int i = 1; i < RatioNominal->GetNbinsX()+1; i++) {
-      RatioJECDown->SetBinError(i, 0.0001);
-      RatioJECUp->SetBinError(i, 0.0001);
-      RatioPLIDown->SetBinError(i, 0.0001);
-      RatioPLIUp->SetBinError(i, 0.0001);
-      RatioAlphaReweightDown->SetBinError(i, 0.0001);
-      RatioAlphaReweightUp->SetBinError(i, 0.0001);
-      RatioPUDown->SetBinError(i, 0.0001);
-      RatioPUUp->SetBinError(i, 0.0001);
-      RatioTailsUp->SetBinError(i, 0.0001);
-      RatioTailsDown->SetBinError(i, 0.0001);
-   }
 
    // ------------------------------------------------------------------ //
    // calc lower bounds
@@ -798,14 +812,14 @@ void CalcSysUncJER()
    // ------------------------------------------------------------------ //
    // show values on screen total syst. uncertainty in %
    cout << " // ------------------------------------------------------------------ // " << endl;
-   cout << "Total syst. uncertainty (in '%') : " << endl;
-   cout << "Eta0 : " << eta0_sysUncUp/RatioNominal->GetBinContent(1) << endl;
-   cout << "Eta1 : " << eta1_sysUncUp/RatioNominal->GetBinContent(2) << endl;
-   cout << "Eta2 : " << eta2_sysUncUp/RatioNominal->GetBinContent(3) << endl;
-   cout << "Eta3 : " << eta3_sysUncUp/RatioNominal->GetBinContent(4) << endl;
-   cout << "Eta4 : " << eta4_sysUncUp/RatioNominal->GetBinContent(5) << endl;
-   if(use6EtaBins) cout << "Eta5 : " << eta5_sysUncUp/RatioNominal->GetBinContent(6) << endl;
-   if(use7EtaBins) cout << "Eta6 : " << eta6_sysUncUp/RatioNominal->GetBinContent(7) << endl;
+   cout << "Total syst. uncertainty : " << endl;
+   cout << "Eta0 : " << eta0_sysUncUp << endl;
+   cout << "Eta1 : " << eta1_sysUncUp << endl;
+   cout << "Eta2 : " << eta2_sysUncUp << endl;
+   cout << "Eta3 : " << eta3_sysUncUp << endl;
+   cout << "Eta4 : " << eta4_sysUncUp << endl;
+   if(use6EtaBins) cout << "Eta5 : " << eta5_sysUncUp << endl;
+   if(use7EtaBins) cout << "Eta6 : " << eta6_sysUncUp << endl;
    cout << " // ------------------------------------------------------------------ // " << endl;
 
    // ------------------------------------------------------------------ //

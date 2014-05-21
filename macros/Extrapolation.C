@@ -1170,8 +1170,8 @@ void Extrapolation()
             // res->SetBottomMargin(0.25 + 0.75*res->GetBottomMargin()-0.25*res->GetTopMargin());
             res->cd();
             tmp_res->GetYaxis()->SetRangeUser(0.000001, 500 * tmp_res->GetMaximum());
-            tmp_res->SetLabelSize(0);
-            tmp_res->GetXaxis()->SetTitle("");
+            // tmp_res->SetLabelSize(0);
+            tmp_res->GetXaxis()->SetTitle("p_{T, reco}/p_{T, gen}");
             tmp_res->Draw("hist");
             //gauss_res->Draw("same");
 

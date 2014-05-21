@@ -399,13 +399,9 @@ float smearmc::getsmearfactor(float eta)
    // const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 5.2f}; // eta bins defining smearfactors
    const float eta_high[] = {0.5f, 1.1f, 1.7f, 2.3f, 2.8f, 3.2f, 5.2f};
    const int neta = sizeof(eta_high) / sizeof(float);
-   // const float smearval[] = {1.080, 1.103, 1.124, 1.222, 1.206};
-   // const float smearval[] = {1.0769, 1.0998, 1.1185, 1.205, 1.191};
    // const float smearval[] = {1.0769, 1.0998, 1.1185, 1.205, 1.145, 1.0, 1.0};
-   // const float smearval[] = {1.0905, 1.1072, 1.1171, 1.2967, 1.1217};
    const float smearval[] = {1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1};
-   // const float smearval[] = {1, 1, 1, 1, 1};
-
+  
    for(int ieta = 0; ieta < neta; ++ieta){
       float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
@@ -870,9 +866,9 @@ int asymm_histos::ibin_eta(const event & evt) const{
    const int neta = sizeof(eta_high) / sizeof(float);
    for(int ieta = 0; ieta < neta; ++ieta){
       // both the leading and the sub-leading jet must be within the same eta bin extending from eta_lo to eta_hi:
-      /*float eta_hi = eta_high[ieta];
+      float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
-      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;*/
+      if(eta0 >= eta_lo and eta0 < eta_hi and eta1 >= eta_lo and eta1 < eta_hi) return ieta;
 
       // one jet has to be in the central eta bin, the other jet can be in any other
       /*float eta_hi = eta_high[ieta];
@@ -887,10 +883,10 @@ int asymm_histos::ibin_eta(const event & evt) const{
       (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 0.5f and eta1 < 1.1f )) return ieta;*/
 
       // one jet has to be in the second-next-to-central eta bin, the other jet can be in any other
-      float eta_hi = eta_high[ieta];
+      /*float eta_hi = eta_high[ieta];
       float eta_lo = ieta == 0 ? 0.0f : eta_high[ieta-1];
       if( (eta0 >= 1.1f and eta0 < 1.7f and eta1 >= eta_lo and eta1 < eta_hi ) || 
-      (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 1.1f and eta1 < 1.7f )) return ieta;
+      (eta0 >= eta_lo and eta0 < eta_hi and eta1 >= 1.1f and eta1 < 1.7f )) return ieta;*/
    }
    return -1;
 }
@@ -1010,28 +1006,28 @@ bool asymm_histos::process(event & evt){
    assert(asymmetry >= 0.0f);
 
    // use forward jet always as first jet
-   float forward_asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
-   float forward_genasymmetry = (evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
-   // if(abs(evt.JetEta[0]) < 0.5f) {
-   // if(abs(evt.JetEta[0]) >= 0.5f && abs(evt.JetEta[0]) < 1.1f) {
-   if(abs(evt.JetEta[0]) >= 1.1f && abs(evt.JetEta[0]) < 1.7f) {
-      forward_asymmetry = (evt.JetPt[1] - evt.JetPt[0]) / (evt.JetPt[0] + evt.JetPt[1]);
-      forward_genasymmetry = (evt.GenJetPt[1] - evt.GenJetPt[0]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
-   }
+  //  float forward_asymmetry = (evt.JetPt[0] - evt.JetPt[1]) / (evt.JetPt[0] + evt.JetPt[1]);
+//    float forward_genasymmetry = (evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
+//    if(abs(evt.JetEta[0]) < 0.5f) {
+//    // if(abs(evt.JetEta[0]) >= 0.5f && abs(evt.JetEta[0]) < 1.1f) {
+//    // if(abs(evt.JetEta[0]) >= 1.1f && abs(evt.JetEta[0]) < 1.7f) {
+//       forward_asymmetry = (evt.JetPt[1] - evt.JetPt[0]) / (evt.JetPt[0] + evt.JetPt[1]);
+//       forward_genasymmetry = (evt.GenJetPt[1] - evt.GenJetPt[0]) / (evt.GenJetPt[0] + evt.GenJetPt[1]);
+//    }
 
    // fill asymmetry histos inclusive in alpha
    for(int i = 0; i < n_alpha-alphabin; i++) {
       int histo_index = ptbin * (n_eta * n_alpha) + etabin * n_alpha + (i+alphabin);
       assert(histo_index < int(histos_asymm.size()));
       histos_asymm[histo_index]->Fill(asymmetry, evt.Weight);
-      histos_asymm_forward[histo_index]->Fill(forward_asymmetry, evt.Weight);
+      // histos_asymm_forward[histo_index]->Fill(forward_asymmetry, evt.Weight);
       if(evt.is_mc) {
          // -------- used for recopt, recoeta & recoalpha ------- //
          float genasymmetry = TMath::Abs((evt.GenJetPt[0] - evt.GenJetPt[1]) / (evt.GenJetPt[0] + evt.GenJetPt[1]));
          // genasymmetry defined that way should always be positive
          assert(genasymmetry >= 0.0f);
          histos_genasymm[histo_index]->Fill(genasymmetry, evt.Weight);
-         histos_genasymm_forward[histo_index]->Fill(forward_genasymmetry, evt.Weight);
+         // histos_genasymm_forward[histo_index]->Fill(forward_genasymmetry, evt.Weight);
       }
    }
 
